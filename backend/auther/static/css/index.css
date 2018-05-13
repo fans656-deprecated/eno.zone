@@ -1,0 +1,26 @@
+#login {
+  margin: .3em 0;
+}
+
+#users {
+  padding: .5em 0;
+}
+
+.user {
+  display: inline-flex;
+  flex-flow: column;
+  align-items: flex-end;
+  margin: .3em;
+  padding: .5em;
+}
+
+.user .edit {
+  width: 50em;
+  height: 8em;
+  font-family: 'Consolas';
+}
+
+.user .buttons {
+  display: flex;
+  flex-flow: row;
+}

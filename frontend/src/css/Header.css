@@ -1,0 +1,13 @@
+header {
+  display: flex;
+  align-items: center;
+}
+
+header > *:last-child {
+  margin-left: auto;
+  margin-right: 1rem;
+}
+
+header .username {
+  text-align: right;
+}

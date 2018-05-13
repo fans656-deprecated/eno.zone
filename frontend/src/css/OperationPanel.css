@@ -1,0 +1,13 @@
+.panel {
+  position: fixed;
+  transform: scale(1.2);
+}
+
+.panel li {
+  filter: opacity(.2);
+}
+
+.panel li:hover {
+  filter: opacity(1.0);
+  transition: .3s;
+}

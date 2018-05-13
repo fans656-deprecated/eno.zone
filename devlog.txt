@@ -1,0 +1,311 @@
+2017-05-20 16:12:48
+[todo]
+) file sync API
+) mnote
+) pastebin
+) register new user and post avatar
+) book view
+) old sina img
+) clear search return to all docs
+) book read
+) leetcode stat
+
+2017-05-21 14:32:56
+http://stackoverflow.com/questions/21388921/subdomains-with-flask
+handle subdomains in flask
+
+2017-05-22 22:55:59
+) implement "command line clip get/post"
+    . export /get-cookie by POST username/password
+    . curl -H 'application/json' -X POST -d '{"username": "foo", "password: "bar"}' https://fans656.me/api/get-cookie
+
+    ) (depracated)understand API key mechanism
+
+2017-06-11 09:11:07
+rewrite using react
+
+. about page
+. login
+. user panel (post blog, etc..)
+. post blog editor
+. post blog api
+
+2017-06-12 08:45:10
+) show post date right bottom
+    ) click date for detail view (with comment)
+    ) click "edit for edit (auto save)
+
+) comments
+
+2017-06-12 22:26:12
+理一下思路：
+
+https://fans656.me/                 => blogs
+https://fans656.me/blog             => blogs
+https://fans656.me/blog/123         => blog by id
+https://fans656.me/blog/123/edit    => blog by id edit
+
+2017-06-18 15:37:41
+. post node
+    . {"data": "..."}
+. get node
+    . /api/node/5
+    . get node list
+    . by ref
+. delete node by id
+. put node
+
+=== non api
+. blog list
+. put node (no delete, backup)
+
+2017-06-19 00:45:41
+) node literal in links
+    {
+        "data": "this is content",
+        "links": [
+            {"rel": "type", "dst": "blog"},
+            {"rel": "title", "dst": {
+                "data": "this is title"
+            }}
+        ]
+    }
+
+2017-06-21 03:22:23
+) upload files
+. react context (for `user`)
+    dont use context
+) refactor into different js
+
+2017-06-23 02:24:20
+) diandian blogs
+) books
+) music
+) movies
+
+2017-06-24 01:34:09
+http://blog.sina.com.cn/fans656
+迁移新浪博客
+
+2017-06-25 04:16:36
+今天要把新站上线掉：有点赶，所以只做最必要的那些功能
+
+. all data upload
+  . upload diandian-migaration git repo
+  . mark old blog
+  . change db schema
+  . backup db
+  . submit post-45 #7
+. pagination
+) full site regularly backup
+) login required post test
+# development/production database
+
+2017-06-25 08:15:25
+7.html的#45 blog太长，超出了mysql TEXT的长度...
+决定暂时用LONGTEXT解决(其实有个MEDIUMTEXT，但先这么用)
+以后有空好好思考下存储的问题，LONGTEXT会不会有性能问题
+
+2017-06-26 03:26:31
+) pagination input
+    can't backspace on page "1"
+) node (a more robust lib with file support)
+    ) when delete, just mark (can set expire time)
+) blog/file ref
+) TODO page
+    add todos
+    categoried by tags (long term, short term...)
+    version control
+
+2017-06-28 23:58:03
+Functional:
+# node (a more robust lib with file support)
+    # when delete, just mark (can set expire time)
+(reason: use neo4j)
+
+2018-04-30 21:17:24
+之前写了几天的stome(storage for fans656.me)的devlog，结果手贱删了
+无所谓啦
+stome的原型已经就绪，现在想着手更新fme(fans656.me)了
+基本打算重写
+
+
+刚在想，最基本的功能是什么呢？——我是指基础设施
+差不多就是custom url + script
+可以指定任一url上接到请求后调用哪个脚本
+脚本可以放在stome上
+然后就可以在此基础上创建出可以执行各种功能的api，还可以更新
+
+2018-05-01 14:14:38
+整理一下url对应要做的
+
+    GET /
+        index.html
+        拉去文章列表，显示文章内容
+    PUT /blog
+        创建文章
+    PUT /blog?id=138
+        创建或更新文章
+
+2018-05-01 15:00:44
+整理一下use case
+
+plain-text
+
+    this is just a note
+
+markdown
+
+    # this is title
+    
+    and this is code:
+    
+        def hello():
+            print "hi, world"
+
+gallery
+
+2018-05-03 22:59:59
+可以用
+
+    npx babel index.js
+
+来编译jsx文件
+
+2018-05-05 08:34:37
+https://github.com/jamesmartin/react-remote-component-demo
+动态加载react component
+
+2018-05-05 09:14:16
+实验成功，至少可以用window.eval加载动态的component
+
+    import React from 'react';
+    import ReactDOM from 'react-dom';
+    
+    window.React = React;
+
+    $.get('http://ub:8000/T.js', (src) => {
+        window.eval(src);
+        ReactDOM.render(<T/>, document.getElementById('root'));
+    });
+
+感觉这个动态加载component打通了前端这里就不着急了
+
+下来该考虑考虑内容服务——file storage已经打通
+另一个就是blog内容了，要有全文搜索的功能
+而且编辑的文本跟显示出来的不一定一样，涉及预处理后处理之类的，回头case by case地考虑
+
+2018-05-05 17:51:35
+elasticsearch只走了一个tutorial就已经可以满足full-text search的需求了
+至于新blog的id，可以每次放之前查一下count
+
+下面可以把现有blog的内容导出来放进es，然后做个full-text search的prototype
+过程中可能补一补es的细节
+
+2018-05-05 22:34:26
+原fme数据导入的todo:
+
+) /files/...
+) sina img
+    search "http" or "sina" in note.content
+
+2018-05-07 00:40:43
+[usecases]
+
+========================================
+direct-english
+
+play small audio/video with lines
+playlist
+local storage if possible
+    js find storage preference for ub
+========================================
+books read
+
+single book
+    cover
+    read start/end
+    link to douban
+    link to txt reader
+book list
+    how many characters read
+    read speed
+========================================
+movies seen
+========================================
+leetcode
+========================================
+av
+========================================
+learning roadmap
+
+stack
+history view
+
+2018-05-07 20:26:14
+有点儿懒得重写了，想是不是在原来的基础上修补一下
+需要做的有这么几个事儿：
+1. 数据库迁移到elasticsearch，为了支持fulltext search
+2. 前端加逻辑判断 {'type': '..'} ，支持新的blog类型
+3. 写新的React Component，支持新的blog类型
+4. 重写backup逻辑，支持备份
+
+2018-05-09 00:25:06
+看来elasticsearch不能完全当数据库用：这家伙把field都给analyze了
+所以还得搭配数据库，只把文本放在es里
+略微看了一眼，似乎mongodb可以：document based, 也有key-value, graph等等
+
+2018-05-10 08:06:18
+我靠，mongodb直接可以regex实现全文搜索，速度还不慢——这个比es更适合我的需求哎
+
+2018-05-11 07:42:29
+[test]
++ doc
+    + post
+    + edit
+    + delete
++ comment
+    + post
+        + as me
+        + as guest
+        + as other
+    + delete
+    (no edit)
++ user
+    + log in
+    + log out
+    + register
+    + avatar
++ custom url
+    + edit
+    + view
++ search
+    + tag
+        + edit tag
+    + content
++ access control
+    + others can't view hidden doc
+
+2018-05-11 22:24:18
+. delete comment (now comments belong to blog and has no id)
+. bug: es can't match tag '.', relating to text/keyword field
+    https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+
+    fixed by switch to mongodb ;p
+
+2018-05-13 00:40:52
+. bug: after new/delete blog, the returned list view didn't update
+
+2018-05-13 01:24:30
+avail domains:
+
+eno.zone
+mnote.me
+
+2018-05-13 15:17:16
+. pagination
+. post note
+) comments
+) nav theme
+) console
+) search
