@@ -31,12 +31,13 @@ class NoteList extends React.Component {
       page: q.page,
       size: q.size,
     });
+    console.log(pagedNotes);
     this.setState({pagedNotes: pagedNotes});
   }
 
   render() {
     const notes = this.state.pagedNotes.notes.map(note => (
-      <Note key={note.id} note={note} visitor={this.props.visitor}/>
+      <Note key={note.id} note={note} id={note.id} visitor={this.props.visitor}/>
     ));
     return (
       <div className="note-list">

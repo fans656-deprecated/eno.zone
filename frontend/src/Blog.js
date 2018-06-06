@@ -7,7 +7,7 @@ import IconBook from 'react-icons/lib/fa/book'
 import qs from 'qs'
 import $ from 'jquery'
 
-import Comments from './Comments'
+import CommentList from './CommentList'
 import Reader from './Reader'
 import Gallery from './Gallery'
 import LeetcodeStatistics from './LeetcodeStatistics'
@@ -289,7 +289,7 @@ class Footer extends Component {
             }
           </div>
         </div>
-        <Comments
+        <CommentList
           visible={this.state.commentsVisible}
           user={this.props.user}
           blog={this.props.blog}

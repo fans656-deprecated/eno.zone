@@ -1,6 +1,9 @@
+const origin = window.location.origin;
+
 const conf = {
   owner: 'fans656',
-  backend_origin: window.location.origin,
+  origin: origin,
+  backend_origin: origin,
   default: {
     nav: [
       {name: 'Home', url: '/'}

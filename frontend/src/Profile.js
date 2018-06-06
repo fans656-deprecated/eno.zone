@@ -8,7 +8,7 @@ class Profile extends Component {
   render() {
     const visitor = this.props.visitor;
     const user = new User({username: this.props.username});
-    const isSelf = visitor['username'] == user['username'];
+    const isSelf = visitor['username'] === user['username'];
     return (
       <div className="profile center narrow center-children">
         {user && <div className="center-children">

@@ -1,6 +1,5 @@
 import jwt_decode from 'jwt-decode';
 import Cookies from 'js-cookie';
-import qs from 'query-string';
 
 import conf from './conf';
 import User from './User';
@@ -18,16 +17,13 @@ export async function fetchJSON(method, url, data) {
 
 function prepareFetch(method, url, data) {
   if (!url.startsWith('http')) {
-    url = conf.backend_origin + url;
+    url = conf.origin + url;
   }
   data = data || {};
 
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
   headers.append('Accept', 'application/json');
-  if (conf.backend_origin.slice(5) !== 'https') {
-    headers.append('Cache-Control', 'no-cache');
-  }
   const options = {
     method: method,
     headers: headers,
@@ -79,6 +75,15 @@ export async function postNote(note) {
 
 export async function deleteNote(note_id) {
   return await fetchJSON('DELETE', `/api/note/${note_id}`);
+}
+
+export async function postComment(note_id, comment) {
+  return await fetchJSON('POST', `/api/note/${note_id}/comment`, comment);
+}
+
+export async function deleteComment(note_id, comment_id) {
+  const path = `/api/note/${note_id}/comment/${comment_id}`;
+  return await fetchJSON('DELETE', path);
 }
 
 export function getVisitor() {

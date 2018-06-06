@@ -66,7 +66,6 @@ class EditNote extends React.Component {
       return <h1>You are not owner</h1>;
     }
     const note = this.state.note;
-    console.log('~~~~~~~~~~~~~~~~~' + note);
     if (!note) {
       return <h1>Invalid</h1>
     }

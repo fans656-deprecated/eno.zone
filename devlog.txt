@@ -305,7 +305,33 @@ mnote.me
 2018-05-13 15:17:16
 . pagination
 . post note
-) comments
+. comments
+) file storage
 ) nav theme
 ) console
 ) search
+
+2018-05-29 21:40:09
+[content to add]
+) bank card pics
+) jquery.js
+) passwords of various sites
+    ) sina sae
+    ) dns.xsazz.com
+    ) vultr
+    ) bandwagon
+    ) paypal
+    ) mails
+        yahoo 163 qq gmail
+
+2018-05-30 00:58:13
+) js client qiniu upload
+    when user select a file to upload,
+    upload it to qiniu and then tell vps server
+) js service worker to modify http request/response
+    so like when page render <img>, js client will intercept the request like
+        GET http://res.fans656.me/img/girl.jpg
+    and convert it to qiniu requests, got the responses (encrypted chunked data),
+    decrypt and merge them into actual image data, and return the new response
+    this way for user, the web page just looks normal
+    but can speed up access and lift vps server for storage burden

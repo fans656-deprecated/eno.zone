@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import ECharts from 'react-echarts'
+//import ECharts from 'react-echarts'
 
 import { fetchData } from './utils'
 
@@ -29,6 +29,8 @@ export default class Gallery extends Component {
   }
 
   render() {
+    return <div><h1>WARNING: no echarts</h1></div>;
+    /*
     return <div style={{marginBottom: '2em'}}>
       <ECharts option={{
         xAxis: {
@@ -86,5 +88,6 @@ export default class Gallery extends Component {
         </ul>
       }
     </div>
+    */
   }
 }

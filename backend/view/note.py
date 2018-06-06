@@ -76,3 +76,19 @@ def delete_note(note_id):
         return util.success_response()
     else:
         return util.error_response('delete error')
+
+
+def post_comment(note_id):
+    comment = request.json
+    if noter.post_comment(note_id, comment):
+        return util.success_response()
+    else:
+        return util.error_response('post comment error')
+
+
+@util.require_owner_login
+def delete_comment(note_id, comment_id):
+    if noter.delete_comment(note_id, comment_id):
+        return util.success_response()
+    else:
+        return util.error_response('delete comment error')

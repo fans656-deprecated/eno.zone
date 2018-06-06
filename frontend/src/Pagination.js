@@ -1,13 +1,13 @@
 import React from 'react';
-import { Link, withRouter } from 'react-router-dom'
+import { withRouter } from 'react-router-dom'
 import IconCaretLeft from 'react-icons/lib/fa/caret-left'
 import IconCaretRight from 'react-icons/lib/fa/caret-right'
-import IconPlus from 'react-icons/lib/md/add'
+//import IconPlus from 'react-icons/lib/md/add'
 import qs from 'qs'
-import $ from 'jquery'
+//import $ from 'jquery'
 
-import { Icon, DangerButton, Textarea, Input } from './common'
-import { fetchData } from './utils'
+import { Icon } from './common'
+//import { fetchData } from './utils'
 
 class Pagination extends React.Component {
   constructor(props) {

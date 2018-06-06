@@ -11,7 +11,9 @@ export const Icon = (props) => {
   } else if (props.size === 'large') {
     size = LARGE_ICON_SIZE;
   }
-  return React.createElement(props.type, {...props, size: size});
+  const childProps = Object.assign({}, props);
+  delete childProps.type;
+  return React.createElement(props.type, {...childProps, size: size});
 };
 
 export class DangerButton extends Component {

@@ -20,9 +20,8 @@ endpoints = [
     ('DELETE', '/api/note/<int:note_id>', view.note.delete_note),
 
     ## comment
-    #('GET', '/api/blog/<int:blog_id>/comment', view_blog.get_comments),
-    #('POST', '/api/blog/<int:blog_id>/comment', view_blog.post_comment),
-    #('DELETE', '/api/blog/<int:doc_id>/comment/<int:comment_id>', view_blog.delete_comment),
+    ('POST', '/api/note/<int:note_id>/comment', view.note.post_comment),
+    ('DELETE', '/api/note/<int:note_id>/comment/<int:comment_id>', view.note.delete_comment),
 
     ## --------------------------------------------------
 

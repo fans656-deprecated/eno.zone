@@ -8,13 +8,12 @@
     "jwt-decode": "^2.2.0",
     "lodash": "^4.17.4",
     "query-string": "^6.1.0",
-    "react": "^15.5.4",
-    "react-dom": "^15.5.4",
-    "react-echarts": "^0.1.1",
-    "react-icons": "^2.2.5",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "react-icons": "^2.2.7",
     "react-markdown": "^2.5.0",
-    "react-router-dom": "^4.1.1",
-    "slate": "^0.20.3",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.2.2",
     "styled-components": "^3.2.6"
   },
   "devDependencies": {
@@ -26,5 +25,5 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:6561"
+  "proxy": "https://localhost:6561"
 }
