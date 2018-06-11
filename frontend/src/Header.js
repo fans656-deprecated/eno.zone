@@ -2,7 +2,6 @@ import React from 'react';
 
 import Nav from './Nav';
 import UserSpan from './UserSpan';
-import Console from './Console';
 
 import './css/Header.css';
 
@@ -14,10 +13,6 @@ const Header = ({user, consoleHandlers}) => (
       display: 'inline-flex',
       alignItems: 'center',
     }}>
-      <Console
-        style={{marginRight: '1em'}}
-        handlers={consoleHandlers}
-      />
       <UserSpan user={user}/>
     </div>
   </header>

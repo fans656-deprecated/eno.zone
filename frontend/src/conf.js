@@ -6,7 +6,8 @@ const conf = {
   backend_origin: origin,
   default: {
     nav: [
-      {name: 'Home', url: '/'}
+      {name: 'TODO', url: '/todo'},
+      {name: 'Home', url: '/'},
     ]
   }
 };

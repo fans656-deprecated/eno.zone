@@ -38,7 +38,7 @@ export class DangerButton extends Component {
   render() {
     return (
       <button
-        className={'danger-button ' + (this.state.clicked ? 'dangerous' : '')}
+        className={'eno-button danger-button ' + (this.state.clicked ? 'dangerous' : '')}
         onClick={this.onClick}
       >
         {this.props.children}

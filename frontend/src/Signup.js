@@ -62,7 +62,7 @@ export default class Signup extends React.Component {
             placeholder="Confirm password" 
             ref={input => this.confirmPassword = input}
           />
-          <button onClick={this.doSignup} className="primary">Sign up</button>
+          <button onClick={this.doSignup} className="eno-button primary">Sign up</button>
           <input style={{display: 'none'}} type="submit"/>
         </form>
       </div>

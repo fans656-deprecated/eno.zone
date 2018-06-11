@@ -81,6 +81,7 @@ export default class CommentEdit extends React.Component {
             </div>
           }
           <button
+            className="eno-button"
             style={{
               marginLeft: 'auto',
               marginRight: '1px',

@@ -335,3 +335,14 @@ mnote.me
     decrypt and merge them into actual image data, and return the new response
     this way for user, the web page just looks normal
     but can speed up access and lift vps server for storage burden
+
+2018-06-06 23:56:41
+实现了从stome后端取文件了，可以直接在eno.zone页面上写
+
+    <img src="/res/girl.jpg">
+
+显示图片，new tab也支持，，爽
+
+
+嗯... 下来好像该实现剪贴板粘贴上传，也是要service worker搞七牛upload
+另外，似乎得先实现个好用的editor

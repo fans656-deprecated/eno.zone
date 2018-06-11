@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import $ from 'jquery';
 
+import Todo from './todo';
 import Header from './Header';
 import Footer from './Footer';
 import Login from './Login';
@@ -35,6 +36,10 @@ class App extends React.Component {
         />
         <main id="main">
           <Switch>
+            <Route exact path='/todo'
+              render={() => <Todo/>}
+            />
+            
             <Route exact path='/'
               render={() => <NoteList owner={owner} visitor={visitor}/>}
             />
@@ -85,6 +90,7 @@ class App extends React.Component {
   }
 
   registerConsoleHandler = (handler) => {
+    return;
     this.setState(prevState => {
       const handlers = prevState.consoleHandlers;
       handlers.push(handler);
@@ -95,6 +101,7 @@ class App extends React.Component {
   }
 
   unregisterConsoleHandler = (target_handler) => {
+    return;
     this.setState(prevState => {
       const handlers = prevState.consoleHandlers;
       for (let i = 0; i < handlers.length; ++i) {

@@ -1,0 +1,57 @@
+.edit-blog .buttons {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1em;
+}
+
+.edit-blog .buttons.horizontal {
+  justify-content: space-between;
+}
+
+.edit-blog .buttons .eno-button {
+  margin-left: 1em;
+}
+
+/*
+.edit-blog > * {
+  box-sizing: border-box;
+}
+
+.edit-blog textarea {
+  width: 100%;
+  min-height: 30em;
+  padding: .5rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.edit-blog .buttons button {
+  margin-left: 1rem;
+}
+
+.edit-blog .tags {
+  width: 100%;
+  padding: 0 .5rem;
+  margin-top: 0;
+}
+*/
+
+/*
+  .edit-blog textarea {
+    min-height: 35em;
+    padding: .5rem;
+  }
+
+  .edit-blog .tags, .edit-blog .custom-url {
+    margin: 0;
+    padding: 0 .6rem;
+    min-width: 30rem;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  .edit-blog .buttons button {
+    margin-top: .5rem;
+    margin-left: 1.5rem;
+  }
+*/

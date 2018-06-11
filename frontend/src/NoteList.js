@@ -31,7 +31,6 @@ class NoteList extends React.Component {
       page: q.page,
       size: q.size,
     });
-    console.log(pagedNotes);
     this.setState({pagedNotes: pagedNotes});
   }
 

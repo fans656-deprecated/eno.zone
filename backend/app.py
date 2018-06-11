@@ -11,6 +11,11 @@ from endpoints import endpoints
 app = Flask(__name__)
 
 
+@app.route('/sw.js')
+def get_service_worker():
+    return send_from_directory('../frontend/public', 'sw.js')
+
+
 for method, path, viewfunc in endpoints:
     viewfunc = util.handle_exceptions(viewfunc)
     app.route(path, methods=[method])(viewfunc)

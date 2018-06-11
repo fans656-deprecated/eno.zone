@@ -25,11 +25,11 @@ class Login extends Component {
             ref={input => this.password = input}
           />
           <div>
-            <button onClick={this.doLogin} className="primary">
+            <button onClick={this.doLogin} className="eno-button primary">
               Login
             </button>
             <Link to="/signup" style={{float: 'left'}}>
-              <button className="secondary">
+              <button className="eno-button secondary">
                   Sign up
               </button>
             </Link>

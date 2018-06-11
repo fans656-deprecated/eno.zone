@@ -244,7 +244,7 @@ class EditBlog extends Component {
         <DangerButton id="delete" onClick={this.doDelete}>
           Delete
         </DangerButton>
-        <button id="submit" className="primary" onClick={this.doPost}>
+        <button id="submit" className="eno-button primary" onClick={this.doPost}>
           Post
         </button>
       </div>

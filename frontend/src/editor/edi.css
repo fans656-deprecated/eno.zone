@@ -1,0 +1,21 @@
+.editor {
+  background: #fefefe;
+}
+
+.ql-editor {
+  min-height: 40em;
+  font-family: 'Consolas';
+}
+
+.editor.focus {
+  outline: 1px solid cornflowerblue;
+}
+
+.editor .toolbar .right button {
+  margin-right: 1em;
+}
+
+.editor .toolbar button.toggled {
+  font-weight: bold;
+  color: #06c;
+}

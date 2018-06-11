@@ -11,4 +11,8 @@ if __name__ == '__main__':
     db = getdb()
 
     r = db.note.find({})
-    print len(list(r))
+    a = list(r)
+    for note in a:
+        if note['type'] != 'markdown':
+            print note
+            break

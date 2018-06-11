@@ -3,9 +3,12 @@ import ReactDOM from 'react-dom';
 import { BrowserRouter } from 'react-router-dom';
 
 import { getVisitor, getOwner } from './util';
+import { registerServiceWorker } from './serviceworker'
 
 import App from './App';
 import './css/style.css';
+
+registerServiceWorker();
 
 const visitor = getVisitor();
 const owner = getOwner();

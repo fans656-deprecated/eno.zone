@@ -15,7 +15,7 @@ export default class Files extends Component {
   render() {
     return <div id="files-page" className="center-children">
       <FileExplorer/>
-      <button className="primary"
+      <button className="eno-button primary"
         onClick={() => this.fileInput.click()}
       >
         Upload
