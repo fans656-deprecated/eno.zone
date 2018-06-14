@@ -346,3 +346,7 @@ mnote.me
 
 嗯... 下来好像该实现剪贴板粘贴上传，也是要service worker搞七牛upload
 另外，似乎得先实现个好用的editor
+
+2018-06-11 21:49:41
+https://stackoverflow.com/questions/37525867/how-can-i-add-a-new-format-hr-tag-to-quill-js
+quill自定义embed

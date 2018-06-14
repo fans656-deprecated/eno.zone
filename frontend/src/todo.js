@@ -1,6 +1,15 @@
 import React from 'react';
 
 const todo = `\
+Edi
+  select text (mouse)
+  backspace to delete
+  tab
+  vim selection mode
+    v - visual
+    V - visual line
+    ctrl-v - visual block
+
 Rich text edit
 
   paste clipboard image

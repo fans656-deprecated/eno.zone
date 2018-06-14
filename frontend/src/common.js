@@ -3,6 +3,7 @@ import {
   NORMAL_ICON_SIZE, LARGE_ICON_SIZE, SMALL_ICON_SIZE
 } from './constants'
 import { excludedSpread } from './utils'
+import './common.css'
 
 export const Icon = (props) => {
   let size = NORMAL_ICON_SIZE;

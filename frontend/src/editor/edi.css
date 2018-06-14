@@ -1,21 +1,62 @@
 .editor {
+  display: flex-column;
+}
+
+.editor .textarea {
   background: #fefefe;
+  flex-grow: 1;
+  resize: none;
+  padding: .5em;
+  min-height: 70vh;
+  font-family: Consolas;
+  line-height: 1.5;
+  border: 1px solid #ddd;
+  position: relative;
 }
 
-.ql-editor {
-  min-height: 40em;
-  font-family: 'Consolas';
+.editor.focused .textarea {
+  outline: 1px solid -webkit-focus-ring-color;
 }
 
-.editor.focus {
-  outline: 1px solid cornflowerblue;
+.editor .caret {
+  display: none;
+  position: absolute;
+  background: steelblue;
+  top: -999em;  /* prevent showing with wrong coordinate on initial click */
 }
 
-.editor .toolbar .right button {
-  margin-right: 1em;
+.editor.input-mode .caret {
+  width: 1.9px;
+  animation: 1s blink step-end infinite;
 }
 
-.editor .toolbar button.toggled {
-  font-weight: bold;
-  color: #06c;
+.editor.normal-mode .caret {
+  width: .5em;
+  opacity: .5;
+}
+
+.editor .textarea .content span {
+  white-space: pre;  /* to enable leading and trailing spaces */
+}
+
+@keyframes "blink" {
+  from, to {
+    visibility: visible;
+  }
+  50% {
+    visibility: hidden;
+  }
+}
+
+.editor input {
+  /*
+  width: 0;
+  height: 0;
+  */
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: none;
+  z-index: -999;
 }

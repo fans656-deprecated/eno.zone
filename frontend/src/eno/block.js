@@ -14,6 +14,11 @@ export default class Block {
     this.refs = {};
   }
 
+  strippedElems = () => {
+    let elems = this.elems;
+    return elems.slice(0, elems.length - 2);
+  }
+
   detectType = (line) => {
     this.blockType = '';
     if (line.match(R.langPythonLine)) {
@@ -55,18 +60,15 @@ export default class Block {
 
   html = () => {
     let type = '';
-    let codeType = null;
     switch (this.blockType) {
       case 'python':
-        type = 'code';
-        codeType = 'python';
-        break;
       case 'c':
         type = 'code';
-        codeType = 'c';
         break;
       case 'formula':
         type = 'formula';
+        break;
+      default:
         break;
     }
     if (type === 'code') {

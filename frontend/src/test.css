@@ -1,0 +1,3 @@
+.test.focused {
+  outline: 1px solid -webkit-focus-ring-color;
+}

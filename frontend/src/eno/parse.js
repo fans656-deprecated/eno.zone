@@ -4,18 +4,14 @@ import {NewLine} from './elem'
 import {parseRefDef, parseElems} from './parse_line'
 
 export function parse(text) {
-  return _parse(text).json();
-}
-
-export function render(text) {
-  return _parse(text).html();
-}
-
-function _parse(text) {
   const reader = new Reader(text);
   const block = parseBlock(reader, 0);
   block.elems.pop();  // remove trailing newline
   return block;
+}
+
+export function render(text) {
+  return parse(text).html();
 }
 
 function parseBlock(reader, indent) {

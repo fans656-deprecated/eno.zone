@@ -4,8 +4,8 @@ import ReactMarkdown from 'react-markdown'
 //import IconEdit from 'react-icons/lib/md/mode-edit'
 //import IconLink from 'react-icons/lib/md/link'
 //import qs from 'qs'
-import MarkdownIt from 'markdown-it'
-import hljs from 'highlightjs'
+//import MarkdownIt from 'markdown-it'
+//import hljs from 'highlightjs'
 import $ from 'jquery'
 
 import NoteTitle from './NoteTitle';
@@ -153,64 +153,20 @@ export default class Note extends Component {
       return null;
     }
 
-    //this.parse(note);
-    //$(`.blog#${note.id} .pre-content`).append(this.preContent);
-    //$(`.blog#${note.id} .after-content`).append(this.afterContent);
+    this.parse(note);
+    $(`.blog#${note.id} .pre-content`).append(this.preContent);
+    $(`.blog#${note.id} .after-content`).append(this.afterContent);
 
-    //if (this.state.replaceAll) {
-    //  return this.state.replaceContent;
-    //}
+    if (this.state.replaceAll) {
+      return this.state.replaceContent;
+    }
     const className = this.props.isSingleView ? 'single-blog-view' : ''
-    // DEBUG
-    let text = `
-
-    Rich text edit
-
-        paste clipboard image
-        insert audio/video
-        write math formula
-
-        add a toolbar dropdown for multiple type
-            markdown
-            raw
-            edi
-        
-        https://github.com/quilljs/awesome-quill
-
-but dont't dot foo
-
-    def run():
-        return 'runned'
-
-<img src="/res/fans656.jpg" width="64">
-
-`;
-    text = text.trim();
-
-    const md = new MarkdownIt({
-      html: true,
-      linkify: true,
-      breaks: true,
-      highlight: (str, lang) => {
-        if (lang && hljs.getLanguage(lang)) {
-          try {
-            return '<pre class="hljs"><code>' +
-              hljs.highlight(lang, str, true).value +
-              '</code></pre>';
-          } catch (_) {
-          }
-        }
-        return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
-      },
-    });
-    const res = md.render(text);
-    console.log(res);
 
     return (
       <div className={'blog ' + className} id={note.id}>
         <NoteTitle className="title" text={note.title}/>
         <div className="pre-content"/>
-        <div className="blog-content" dangerouslySetInnerHTML={{__html: res}}/>
+        <ReactMarkdown className="blog-content" source={note.content}/>
         <div className="after-content"/>
         <NoteFooter
           note={note}

@@ -58,7 +58,6 @@ export class Link extends Elem {
 
 export class Ref extends Elem {
   html = () => {
-    const label = this.label;
     const ref = this.refs[this.value];
     if (!ref) return `<span>${this.text}</span>`;
     let elem = Object.assign(ref.elem, {label: this.label});
