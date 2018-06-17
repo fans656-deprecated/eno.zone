@@ -2,41 +2,93 @@
   display: flex-column;
 }
 
-.editor .textarea {
+.editor.input-mode {
+  cursor: text;
+}
+
+.editor .content {
   background: #fefefe;
-  flex-grow: 1;
-  resize: none;
-  padding: .5em;
-  min-height: 70vh;
   font-family: Consolas;
+  font-size: .9em;
   line-height: 1.5;
   border: 1px solid #ddd;
   position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: .5em;
+  height: 70vh;
 }
 
-.editor.focused .textarea {
+.editor.focused .content {
   outline: 1px solid -webkit-focus-ring-color;
+}
+
+.editor .content * {
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-wrap: break-word;
+}
+
+.editor .command {
+  display: none;
+}
+
+.editor .command.visible {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,.9);
+  padding: 3px 0 0 2px;
+  border-top: 1px solid #eee;
 }
 
 .editor .caret {
   display: none;
   position: absolute;
+}
+
+.editor .caret.visible {
+  display: inline-block;
+  z-index: 999;
+}
+
+.editor .caret.line {
+  width: 1px;
+  height: 1.2em;
+  background: black;
+}
+
+.editor .caret.block {
   background: steelblue;
-  top: -999em;  /* prevent showing with wrong coordinate on initial click */
-}
-
-.editor.input-mode .caret {
-  width: 1.9px;
-  animation: 1s blink step-end infinite;
-}
-
-.editor.normal-mode .caret {
-  width: .5em;
+  margin-top: -3px;
   opacity: .5;
 }
 
-.editor .textarea .content span {
-  white-space: pre;  /* to enable leading and trailing spaces */
+.editor .caret.blink {
+  animation: 1s blink step-end infinite;
+}
+
+.editor span.line {
+  white-space: pre-wrap;  /* to enable leading and trailing spaces */
+}
+
+.editor .input {
+  position: absolute;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  outline: none;
+  z-index: -999;
+}
+
+.editor .dummy {
+  white-space: pre-wrap;
+}
+
+.editor .highlight {
+  background: #FF9632;
 }
 
 @keyframes "blink" {
@@ -46,17 +98,4 @@
   50% {
     visibility: hidden;
   }
-}
-
-.editor input {
-  /*
-  width: 0;
-  height: 0;
-  */
-  position: absolute;
-  padding: 0;
-  margin: 0;
-  border: 0;
-  outline: none;
-  z-index: -999;
 }

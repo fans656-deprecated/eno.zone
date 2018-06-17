@@ -1,114 +1,143 @@
 import React from 'react'
 import $ from 'jquery'
-import katex from 'katex'
+import _ from 'lodash'
 
 import './edi.css'
-import 'katex/dist/katex.min.css'
 
-import './embeds'
+import vimrc from './vimrc'
+import History from './history'
+import {
+  Mode, NormalOperation, NormalOperand,
+} from './constants'
+import {
+  Editor, Content, Lines, Caret, Input, CommandBar,
+} from './components'
+import {
+  insertTextAt, searchAll, isDigit, getWord,
+} from './utils'
 
-window.katex = katex;
-
-const Mode = {
-  Input: 'input',
-  Normal: 'normal',
-};
+import { lines } from './tmp'
 
 export default class Edi extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      _lines: lines.slice(0, 30),
+      _row: 0,
+      _col: 0,
+      keymaps: vimrc.install(this),
       focused: false,
-      inIME: false,
-
       mode: Mode.Input,
-
-      selectionAnchorRange: null,
-
-      caretNode: null,
-      caretOffset: 0,
+      inIME: false,  // for e.g. input Chinese
+      selectionAnchorRange: null,  // for mouse selection
     };
+    this.history = new History();
+    this.resetNormalCmd();
+    window.e = this;
+  }
+
+  componentDidMount = () => {
+    this.caretOwner = this.linesDiv;
+    this._updateCaret();
+  }
+
+  componentDidUpdate = () => {
+    this._updateCaret();
   }
 
   render() {
-    const editorClasses = [];
-    if (this.state.focused) editorClasses.push('focused');
-    editorClasses.push(`${this.state.mode}-mode`);
     return (
-      <div className={`editor ${editorClasses.join(' ')}`}>
-        <div
-          className="textarea"
-          tabIndex="0"
-
-          ref={ref => this.textarea = ref}
-
-          onFocus={this.onTextAreaFocus}
-          onBlur={this.onTextAreaBlur}
-          onClick={this.onClick}
-          onMouseDown={this.onMouseDown}
-          onMouseUp={this.onMouseUp}
-          onMouseMove={this.onMouseMove}
-        >
-          <div
-            className="content"
-            ref={ref => this.contentDiv = ref}
-          >
-            <span>test</span>
-            <img src="https://ub:5000/fans656.jpg" alt="" width="32"/>
-            <em>more</em><span> on this later</span>
-            <br/>
-            <span>x</span>
-          </div>
-          <input
-            className="input"
-
-            ref={ref => this.input = ref}
-
-            onKeyDown={this.onInputKeyDown}
-            onKeyUp={this.onInputKeyUp}
-
-            onChange={this.onInputChange}
-            onCompositionStart={this.onCompositionStart}
-            onCompositionEnd={this.onCompositionEnd}
-          />
-        </div>
-        <div
-          className="caret"
-          ref={ref => this.caret = ref}
-        >&nbsp;</div>
-      </div>
+      <Editor editor={this}>
+        <Content editor={this}>
+          <Lines editor={this}/>
+          <Caret editor={this}/>
+          <Input editor={this}/>
+          <CommandBar editor={this}/>
+        </Content>
+      </Editor>
     );
   }
 
-  focus = () => {
-    $(this.caret).css({display: 'inline-block'});
-    this.input.focus();
-    const textNode = this.contentDiv.lastChild.lastChild;
-    this._setCaretNode(textNode, 999999999);
-    this.setState({focused: true});
+  row = () => {
+    return this.state._row;
   }
 
-  blur = () => {
-    $(this.caret).css({display: 'none'});
-    this.setState({focused: false});
+  col = () => {
+    return this.state._col;
   }
 
-  selectAll = () => {
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.selectNodeContents(this.contentDiv);
-    selection.removeAllRanges();
-    selection.addRange(range);
+  savedRow = () => {
+    return this.savedRowCol.row;
   }
 
-  doEscape = () => {
-    switch (this.state.mode) {
-      case Mode.Input:
-        this.switchToNormalMode();
-        break;
-      default:
-        break;
-    }
+  savedCol = () => {
+    return this.savedRowCol.col;
+  }
+
+  lastRow = () => {
+    return this.lines().length - 1;
+  }
+
+  nonspaceCol = (row) => {
+    row = row == null ? this.row() : row;
+    return this.line(row).search(/\S|$/);
+  }
+
+  endCol = (row) => {
+    return Math.max(0, this.line(row).length - 1);
+  }
+
+  line = (row) => {
+    row = row == null ? this.row() : row;
+    return this.lines()[row];
+  }
+
+  lines = () => {
+    return this.state._lines;
+  }
+
+  textInLine = (row, beg, end) => {
+    const line = this.line(row);
+    return line.substring(beg, end);
+  }
+
+  word = (row, col) => {
+    row = row == null ? this.row() : row;
+    col = col == null ? this.col() : col;
+    const word = getWord(this.line(row), col);
+    word.row = row;
+    return word;
+  }
+
+  linesAfter = (row, col) => {
+    row = row == null ? 0 : row;
+    col = col == null ? 0 : col;
+    const partial = this.lineText(row, col);
+    return [partial, ...this.lines().slice(row + 1)];
+  }
+
+  linesBefore = (row, col) => {
+    col = col == null ? 0 : col;
+    const partial = this.lineTextBefore(row, col)
+    return [...this.lines().slice(0, row), partial];
+  }
+
+  lineText = (row, col) => {
+    row = row == null ? 0 : row;
+    col = col == null ? 0 : col;
+    const line = this.line(row);
+    return line.substring(col);
+  }
+
+  lineTextBefore = (row, col) => {
+    row = row == null ? 0 : row;
+    col = col == null ? 0 : col;
+    const line = this.line(row);
+    return line.substring(0, col);
+  }
+
+  mode = () => {
+    return this.state.mode;
   }
 
   inInputMode = () => {
@@ -119,34 +148,791 @@ export default class Edi extends React.Component {
     return this.state.mode === Mode.Normal;
   }
 
-  switchToNormalMode = async () => {
-    await this._update({mode: Mode.Normal});
-    this._setCaretNode(this.state.caretNode, this.state.caretOffset);
+  inCommandMode = () => {
+    return this.state.mode === Mode.Command;
   }
 
-  switchToInputMode = async () => {
+  caretAtLineBeg = () => {
+    return this.col() === 0;
+  }
+
+  caretAtLineEnd = () => {
+    return this.col() === this.line().length;
+  }
+
+  setCaret = async (row, col) => {
+    if (col == null) {
+      this._setHintedCol(this.col());
+    } else if (col !== this.col()) {
+      this._setHintedCol(col, true);
+    }
+    row = row == null ? this.row() : row;
+    row = Math.max(0, Math.min(row, this.lines().length - 1));
+    col = col == null ? this._getHintedCol() : col;
+    col = Math.max(0, Math.min(col, this._getColMax(row)));
+    if (!this.inInputMode() && col === this.line(row).length) {
+      --col;
+    }
+    if (this._isDummyLine(row)) {
+      col = 0;
+    }
+    await this._setCaret(row, col);
+    this._updateCaret(row, col);
+  }
+
+  selectAll = () => {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(this.contentDiv);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  escape = async () => {
+    switch (this.state.mode) {
+      case Mode.Input:
+      case Mode.Command:
+        await this.switchToNormalMode();
+        break;
+      default:
+        break;
+    }
+  }
+
+  gotoFirstRow = async () => {
+    await this.gotoRow(0);
+  }
+
+  gotoLastRow = async () => {
+    await this.gotoRow(this.lines().length - 1);
+  }
+
+  gotoRow = async (row) => {
+    if (row == null) {
+      row = this.hasNormalCmdCount() ? this.normalCmdCount() - 1 : this.lastRow();
+    }
+    await this.setCaret(row);
+  }
+
+  search = (pattern, row, col) => {
+    console.log('search', '|' + pattern + '|');
+    this.clearHighlights();
+    if (pattern.length === 0) {
+      return;
+    }
+    row = row == null ? this.savedRow() : row;
+    col = col == null ? this.savedCol() : col;
+    const aftMatches = searchAll(pattern, this.linesAfter(row, col), row);
+    const preMatches = searchAll(pattern, this.linesBefore(row, col), 0);
+    const matches = aftMatches.concat(preMatches);
+    for (const match of matches) {
+      this.highlight(match);
+    }
+  }
+
+  rsearch = (pattern, row, col) => {
+  }
+
+  insertTextInLine = async (row, col, text) => {
+    let line = this.line(row);
+    line = line.substring(0, col) + text + line.substring(col);
+    this.lines()[row] = line;
+    await this._setCaret(row, col);
+  }
+
+  deleteChar = async (row, col) => {
+    row = row == null ? this.row() : row;
+    col = col == null ? this.col() : col;
+    const begCol = col;
+    const endCol = begCol + this.normalCmdCount();
+    await this.doDeleteTextInLine(row, begCol, endCol);
+  }
+
+  doDeleteTextInLine = async (row, begCol, endCol) => {
+    const text = this.textInLine(row, begCol, endCol);
+    await this.history.push({
+      undo: async () => {
+        this.insertTextInLine(row, begCol, text);
+      },
+      redo: async () => {
+        await this.deleteTextInLine(row, begCol, endCol);
+      }
+    });
+  }
+
+  deleteTextInLine = async (row, col0, col1) => {
+    let line = this.line(row);
+    line = line.substring(0, col0) + line.substring(col1);
+    this.lines()[row] = line;
+    await this._setCaret(row, Math.min(col0, line.length - 1));
+  }
+
+  undo = async () => {
+    await this.history.undo();
+  }
+
+  redo = async () => {
+    await this.history.redo();
+  }
+
+  highlight = (match) => {
+    const {row, colBeg, colEnd} = match;
+    const lineNode = this._getLineNode(row, this.linesDiv);
+    const text = lineNode.text();
+    const pre = text.substring(0, colBeg);
+    const mid = text.substring(colBeg, colEnd);
+    const aft = text.substring(colEnd);
+    lineNode.html(
+      (pre && `<span>${pre}</span>`)
+      + `<span class="highlight">${mid}</span>`
+      + (aft && `<span>${aft}</span>`)
+    );
+  }
+
+  clearHighlights = () => {
+    const node = $('.highlight').parent();
+    node.text((i, text) => {
+      return text;
+    });
+  }
+
+  feedNormalCommand = (key) => {
+    if (this.normalCmd.type) {
+      // e.g. d[d]
+      return this._handleNormalOperand(key);
+    } else {
+      // e.g. [d]d [d]iw
+      return this._changeNormalCmdType(key);
+    }
+  }
+
+  resetNormalCmd = () => {
+    this.normalCmd = {
+      digits: [],
+    };
+    return true;
+  }
+
+  normalCmdCount = (keep) => {
+    const digits = this.normalCmd.digits;
+    let ret;
+    if (digits.length) {
+      ret = parseInt(digits.join(''), 10);
+    } else {
+      ret = 1;
+    }
+    if (!keep) {
+      this.normalCmd.digits = [];
+    }
+    return ret;
+  }
+
+  hasNormalCmdCount = () => {
+    return this.normalCmd.digits.length > 0;
+  }
+
+  _changeNormalCmdType = (key) => {
+    switch (key) {
+      case 'd':
+        return this._changeNormalOperationType(NormalOperation.Deletion);
+      case 'c':
+        return this._changeNormalOperationType(NormalOperation.Change);
+      case 'y':
+        return this._changeNormalOperationType(NormalOperation.Yank);
+      case 'g':
+        return this._changeNormalOperationType(NormalOperation.Goto);
+      default:
+        if (isDigit(key)) {
+          this.normalCmd.digits.push(key);
+        } else {
+          this.resetNormalCmd();
+        }
+        return true;
+    }
+  }
+
+  _changeNormalOperationType = (type) => {
+    const normalCmd = this.normalCmd;
+    normalCmd.type = type;
+    normalCmd.op = {};
+    return null;
+  }
+
+  _handleNormalOperand = (key) => {
+    const type = this.normalCmd.type;
+    const op = this.normalCmd.op;
+    switch (key) {
+      case 'w':
+        return this._handleWordOperation(type, op);
+      case '(':
+        if (op.type) {
+          console.log(`============= ${this.normalCmd.type} ${op.type} ()`);
+        }
+        return this.resetNormalCmd();
+      case '[':
+        if (op.type) {
+          console.log(`============= ${this.normalCmd.type} ${op.type} []`);
+        }
+        return this.resetNormalCmd();
+      case '{':
+        if (op.type) {
+          console.log(`============= ${this.normalCmd.type} ${op.type} {}`);
+        }
+        return this.resetNormalCmd();
+      case 'd':
+        if (type === NormalOperation.Deletion) {
+          console.log(`============= ${this.normalCmd.type} line`);
+        }
+        return this.resetNormalCmd()
+      case 'c':
+        if (type === NormalOperation.Change) {
+          console.log(`============= ${this.normalCmd.type} line`);
+        }
+        return this.resetNormalCmd()
+      case 'y':
+        if (type === NormalOperation.Yank) {
+          console.log(`============= ${this.normalCmd.type} line`);
+        }
+        return this.resetNormalCmd()
+      case 'g':
+        if (type === NormalOperation.Goto) {
+          this.gotoRow(0);
+        }
+        return this.resetNormalCmd()
+      case 'G':
+        if (type === NormalOperation.Goto) {
+          this.gotoRow(this.lines().length - 1);
+        }
+        return this.resetNormalCmd()
+      default:
+        return this._changeNormalOperandType(key);
+    }
+  }
+
+  _handleWordOperation = (type, op) => {
+    console.log(`============= ${type} ${op.type} word`);
+    const word = this.word();
+    const row = this.row();
+    switch (type) {
+      case NormalOperation.Deletion:
+        switch (op.type) {
+          case NormalOperand.Inside:
+            this.doDeleteTextInLine(row, word.beg, word.end);
+            break;
+          case NormalOperand.Around:
+            this.doDeleteTextInLine(row, word.spaceBeg, word.spaceEnd);
+            break;
+          default:
+            this.doDeleteTextInLine(row, word.col, word.spaceEnd);
+            break;
+        }
+        break;
+      default:
+        break;
+    }
+    return this.resetNormalCmd()
+  }
+
+  _changeNormalOperandType = (key) => {
+    const op = this.normalCmd.op;
+    switch (key) {
+      case 'i':
+        op.type = NormalOperand.Inside;
+        return null;
+      case 'a':
+        op.type = NormalOperand.Around;
+        return null;
+      default:
+        this.resetNormalCmd();
+        return true;
+    }
+  }
+
+  noop = () => {
+  }
+
+  caretLeft = async () => {
+    await this.setCaret(null, this.col() - this.normalCmdCount());
+  }
+
+  caretRight = async () => {
+    await this.setCaret(null, this.col() + this.normalCmdCount());
+  }
+
+  caretUp = async () => {
+    await this.setCaret(this.row() - this.normalCmdCount());
+  }
+
+  caretDown = async () => {
+    await this.setCaret(this.row() + this.normalCmdCount());
+  }
+
+  caretHead = () => {
+    this.setCaret(null, this.nonspaceCol());
+    this.contentDiv.scrollLeft = 0;
+  }
+
+  caretTail = () => {
+    this.setCaret(null, this.endCol());
+  }
+
+  wordLeft = async () => {
+    let row = this.row();
+    let col = this.col();
+    let word;
+    const count = this.normalCmdCount();
+    for (let i = 0; i < count; ++i) {
+      word = this.word(row, col);
+      const toPrevWord = word.beg === word.col;
+      console.log(toPrevWord, row, col, word);
+      if (toPrevWord) {
+        const toPrevLine = word.spaceBeg === 0;
+        if (toPrevLine) {
+          if (word.row) {
+            const prevRow = word.row - 1;
+            const line = this.line(prevRow).trimRight();
+            word = this.word(prevRow, line.length - 1);
+          } else {
+            break;
+          }
+        } else {
+          word = this.word(word.row, word.spaceBeg - 1);
+        }
+      }
+      row = word.row;
+      col = word.beg;
+    }
+    await this.setCaret(word.row, word.beg);
+  }
+
+  wordRight = async () => {
+    let row = this.row();
+    let col = this.col();
+    let word;
+    const count = this.normalCmdCount();
+    for (let i = 0; i < count; ++i) {
+      word = this.word(row, col);
+      const line = this.line(row);
+      const toNextLine = word.spaceEnd === line.length;
+      if (toNextLine) {
+        if (word.row < this.lines().length) {
+          const nextRow = word.row + 1;
+          const line = this.line(nextRow);
+          word = this.word(nextRow, line.length - line.trimLeft().length);
+        } else {
+          return;
+        }
+      } else {
+        word = this.word(word.row, word.spaceEnd);
+      }
+      row = word.row;
+      col = word.beg;
+    }
+    await this.setCaret(word.row, word.beg);
+  }
+
+  wordTail = async () => {
+    let row = this.row();
+    let col = this.col();
+    let word;
+    const count = this.normalCmdCount();
+    for (let i = 0; i < count; ++i) {
+      word = this.word(row, col);
+      const line = this.line(row);
+      if (word.col >= word.end - 1) {
+        const toNextLine = word.spaceEnd === line.length;
+        if (toNextLine) {
+          if (word.row < this.lines().length) {
+            const nextRow = word.row + 1;
+            const line = this.line(nextRow);
+            word = this.word(nextRow, line.length - line.trimLeft().length);
+          } else {
+            return;
+          }
+        } else {
+          word = this.word(word.row, word.spaceEnd);
+        }
+      }
+      row = word.row;
+      col = word.end - 1;
+    }
+    await this.setCaret(word.row, word.end - 1);
+  }
+
+  press = (key) => {
+    const keymap = this.state.keymaps[this.state.mode];
+    if (keymap) {
+      const handled = keymap.feed(key);
+      if (handled === true || handled == null) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  insertToInputMode = async () => {
+    this.switchToInputMode();
+  }
+
+  insertHeadToInputMode = () => {
+    this.switchToInputMode(() => {
+      this._setCaret(this.row(), 0);
+    });
+  }
+
+  appendToInputMode = () => {
+    this.switchToInputMode(() => {
+      this.setCaret(null, this.col() + 1);
+    });
+  }
+
+  appendTailToInputMode = () => {
+    this.switchToInputMode(() => {
+      this.setCaret(null, this.line().length);
+    });
+  }
+
+  appendLineToInputMode = () => {
+    this.switchToInputMode(() => {
+      const row = this.row();
+      this._insertLine(row + 1);
+      this._setCaret(row + 1, 0);
+    });
+  }
+  
+  prependLineToInputMode = () => {
+    this.switchToInputMode(() => {
+      const row = this.row();
+      this._insertLine(row);
+      this._setCaret(row, 0);
+    });
+  }
+
+  insertLine = async (row, col) => {
+    row = row == null ? this.row() : row;
+    col = col == null ? this.col() : col;
+    if (col === 0) {
+      this._insertLine(row);
+      await this._setCaret(row + 1, 0);
+    } else if (col === this.line().length) {
+      this._insertLine(row + 1);
+      await this._setCaret(row + 1, 0);
+    } else {
+      this._splitLine(row, col);
+      await this._setCaret(row + 1, 0);
+    }
+  }
+
+  _splitLine = (row, col) => {
+    const line = this.line(row);
+    const pre = line.substring(0, col);
+    const aft = line.substring(col);
+    this.lines().splice(row, 1, pre, aft);
+  }
+
+  _insertLine = (row) => {
+    this.lines().splice(row, 0, '');
+  }
+
+  switchToNormalMode = async () => {
+    const prevMode = this.state.mode;
+    await this._update({
+      mode: Mode.Normal,
+    });
+    if (prevMode === Mode.Input && !this.caretAtLineBeg()) {
+      await this.setCaret(null, this.col() - 1);
+    }
+  }
+
+  switchToInputMode = async (callback) => {
+    await this._update({
+      mode: Mode.Input,
+    });
+    if (callback) {
+      callback();
+    }
     this.input.focus();
-    await this._update({mode: Mode.Input});
-    this._updateCaret();
+  }
+
+  searchToCommandMode = async () => {
+    await this.switchToCommandMode('/');
+  }
+
+  rsearchToCommandMode = async () => {
+    await this.switchToCommandMode('?');
+  }
+
+  switchToCommandMode = async (text) => {
+    text = text == null ? ':' : text;
+    $('.command-text').text(text);
+    this.savedRowCol = {
+      row: this.row(),
+      col: this.col(),
+    };
+    await this._update({_row: 0, _col: text.length});
+    this.caretOwner = this.commandDiv;
+    await this._update({
+      mode: Mode.Command,
+    });
+    this.contentDiv.scrollLeft = 0;
+  }
+
+  escapeFromCommandMode = async () => {
+    this.caretOwner = this.contentDiv;
+    await this._update({
+      _row: this.savedRowCol.row,
+      _col: this.savedRowCol.col,
+    });
+    await this.escape();
+  }
+
+  executeCommand = async (cmd) => {
+    cmd = cmd || this._getCurrentCommand();
+    switch (cmd[0]) {
+      case '/':
+        this.search(cmd.substring(1), this.savedRow(), this.savedCol());
+        break;
+      case '?':
+        this.rsearch(cmd.substring(1), this.savedRow(), this.savedCol());
+        break;
+      default:
+        break;
+    }
+    await this.escapeFromCommandMode();
+  }
+
+  focus = async () => {
+    await this.setState({focused: true});
+    setTimeout(() => this.input.focus(), 100);
+  }
+
+  blur = () => {
+    this.setState({focused: false});
   }
 
   onMouseDown = (ev) => {
     const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-    $('.dummy').text('');
-    this.setState({selectionAnchorRange: range});
+    this._startSelection(range);
   }
 
   onMouseUp = (ev) => {
-    if (window.getSelection().isCollapsed) {
-      $('.dummy').text(' ');
-    }
-    this.setState({selectionAnchorRange: null});
+    this._stopSelection();
   }
 
   onMouseMove = (ev) => {
-    const anchorRange = this.state.selectionAnchorRange;
-    if (!anchorRange) return;
+    if (this._isSelecting()) {
+      this._doSelection(ev);
+    }
+  }
 
+  onMouseLeave = () => {
+    this._stopSelection();
+  }
+
+  onDragStart = (ev) => {
+    ev.preventDefault();
+  }
+
+  onKeyDown = (ev) => {
+    const modifiers = this._getModifiers(ev);
+    let key;
+    if (!modifiers.modified || modifiers.shiftOnly) {
+      switch (ev.key) {
+        case 'Shift':
+          console.log('shift');
+          return;
+        case 'Enter':
+          key = '<cr>';
+          break;
+        default:  // input text
+          key = ev.key;
+      }
+    } else if (modifiers.ctrlOnly) {
+      key = `<c-${ev.key}>`;
+    } else if (modifiers.altOnly) {
+      key = `<m-${ev.key}>`;
+    }
+    const handled = this.press(key);
+    if (handled) {
+      ev.preventDefault();
+      ev.stopPropagation()
+    }
+  }
+
+  onFocus = (ev) => {
+    this.focus();
+  }
+
+  onBlur = (ev) => {
+    this.blur();
+  }
+
+  onInputChange = (ev) => {
+    if (this.inInputMode() || this.inCommandMode()) {
+      if (!this.state.inIME) {
+        this._takeInputValue();
+      }
+    }
+    let clear = false;
+    switch (this.state.mode) {
+      case Mode.Normal:
+        clear = true;
+        break;
+      default:
+        break;
+    }
+    if (clear) {
+      this.input.value = '';
+    }
+  }
+
+  onCompositionStart = (ev) => {
+    this.setState({inIME: true})
+  }
+
+  onCompositionEnd = async (ev) => {
+    await this.setState({inIME: false});
+    this._takeInputValue();
+  }
+
+  onCommandChange = (cmd) => {
+    console.log('onCommandChange', cmd);
+    switch (cmd[0]) {
+      case '/':
+        this.search(cmd.substring(1), this.savedRow(), this.savedCol());
+        break;
+      case '?':
+        this.rsearch(cmd.substring(1), this.savedRow(), this.savedCol());
+        break;
+      default:
+        break;
+    }
+  }
+
+  onClick = async (ev) => {
+    const {clientX, clientY} = ev;
+    if (this.inCommandMode()) {
+      await this.escapeFromCommandMode();
+    }
+    const range = document.caretRangeFromPoint(clientX, clientY);
+    const node = range.startContainer;
+    if ($(node.parentNode).hasClass('caret')) {
+      return;  // we only set caret when click on text
+    }
+    let lineNode = $(node.parentNode);
+    while (!lineNode.hasClass('line')) {
+      lineNode = lineNode.parent();
+    }
+    const row = Math.floor(lineNode.prevAll().length / 2);
+    const offset = range.startOffset;
+    let col;
+    if (lineNode.contents().length > 1) {
+      const preSiblings = $(node.parentNode).prevAll().toArray();
+      const preTextLength = _.sum(preSiblings.map(n => $(n).text().length));
+      col = preTextLength + offset;
+    } else {
+      col = offset;
+    }
+    await this.setCaret(row, col);
+  }
+
+  _takeInputValue = async () => {
+    let text = this.input.value;
+
+    const row = this.row();
+    let col = this.col();
+
+    if (this.inInputMode()) {
+      const lines = this.lines();
+      const line = this.line();
+      lines[row] = insertTextAt(line, text, col);
+    }
+
+    const lineNode = this._getLineNode();
+    if (lineNode.hasClass('dummy')) {
+      lineNode.empty();
+      lineNode.removeClass('dummy');
+    }
+    lineNode.text(insertTextAt(lineNode.text(), text, col));
+    col += text.length;
+    this.input.value = '';
+    await this._setCaret(row, col);
+    if (this.inCommandMode()) {
+      this.onCommandChange(this._getCurrentCommand());
+    }
+  }
+
+  _getModifiers = (ev) => {
+    const alt = ev.getModifierState('Alt');
+    const ctrl = ev.getModifierState('Control');
+    const shift = ev.getModifierState('Shift');
+    return {
+      alt: alt,
+      ctrl: ctrl,
+      shift: shift,
+      modified: alt || ctrl || shift,
+      altOnly: alt && !(ctrl || shift),
+      ctrlOnly: ctrl && !(alt || shift),
+      shiftOnly: shift && !(alt || ctrl),
+    };
+  }
+
+  _shouldShowCaret = () => {
+    return _.includes([Mode.Input, Mode.Normal], this.state.mode);
+  }
+
+  _caretClass = () => {
+    let visible = (
+      this.state.focused
+      && !this._isSelecting()
+      && !this._hasSelection()
+    );
+    const ret = [];
+    if (visible) {
+      switch (this.state.mode) {
+        case Mode.Normal:
+          ret.push('block', 'visible');
+          break;
+        case Mode.Command:
+          ret.push('block', 'visible', 'blink');
+          break;
+        case Mode.Input:
+          ret.push('line', 'visible', 'blink');
+          break;
+        default:
+          break;
+      }
+    }
+    return ret.join(' ');
+  }
+
+  _getEditorClassName = () => {
+    const ret = [
+      'editor',
+      `${this.state.mode}-mode`,
+    ];
+    if (this.state.focused) ret.push('focused');
+    return ret.join(' ');
+  }
+
+  _isSelecting = () => {
+    return this.state.selectionAnchorRange;
+  }
+
+  _hasSelection = () => {
+    return !window.getSelection().isCollapsed;
+  }
+
+  _startSelection = async (range) => {
+    await this._update({selectionAnchorRange: range});
+  }
+
+  _stopSelection = async () => {
+    await this._update({selectionAnchorRange: null});
+  }
+
+  _doSelection = (ev) => {
+    const anchorRange = this.state.selectionAnchorRange;
     const anchorNode = anchorRange.startContainer;
     const anchorOffset = anchorRange.startOffset;
 
@@ -170,249 +956,17 @@ export default class Edi extends React.Component {
     }
   }
 
-  onInputKeyDown = (ev) => {
-    switch (this.state.mode) {
-      case Mode.Input:
-        this._handleInputModeKeyDown(ev);
-        break;
-      case Mode.Normal:
-        this._handleNormalModeKeyDown(ev);
-        break;
-      default:
-        break;
-    }
-  }
-
-  onInputKeyUp = (ev) => {
-    switch (this.state.mode) {
-      case Mode.Input:
-        this._handleInputModeKeyUp(ev);
-        break;
-      case Mode.Normal:
-        this._handleNormalModeKeyUp(ev);
-        break;
-      default:
-        break;
-    }
-  }
-
-  onTextAreaFocus = (ev) => {
-    this.focus();
-  }
-
-  onTextAreaBlur = (ev) => {
-    this.blur();
-  }
-
-  onInputChange = (ev) => {
-    if (!this.state.inIME) {
-      this._takeInputValue();
-    }
-  }
-
-  onCompositionStart = (ev) => {
-    this.setState({inIME: true})
-  }
-
-  onCompositionEnd = async (ev) => {
-    await this.setState({inIME: false});
-    this._takeInputValue();
-  }
-
-  onClick = async (ev) => {
-    const range = document.caretRangeFromPoint(ev.clientX, ev.clientY);
-    const node = range.startContainer;
-    switch (node.nodeType) {
-      case Node.TEXT_NODE:
-        await this._setCaretNode(node, range.startOffset);
-        this._updateCaret();
-        break;
-      case Node.ELEMENT_NODE:
-        //const elem = node.childNodes[range.startOffset];
-        console.log('todo');
-        break;
-      default:
-        console.log('onClick unknown nodetype', node);
-        break;
-    }
-  }
-
-  //onPaste = (ev) => {
-  //  const clipboardData = ev.clipboardData;
-  //  const items = clipboardData.items;
-  //  for (let i = 0; i < items.length; ++i) {
-  //    const item = items[i];
-  //    if (item.kind === 'file' && item.type.startsWith('image/')) {
-  //      const file = item.getAsFile();
-  //      // process file
-  //    }
-  //  }
-  //}
-
-  insertNewLine = () => {
-    const caretNode = this.state.caretNode;
-    const span = $('<span class="dummy"> </span>');
-    const br = $('<br>');
-    window.t = caretNode;
-    $(caretNode.parentNode).after(br);
-    br.after(span);
-    this._setCaretNode(span.get(0).firstChild, 0);
-  }
-
-  _handleInputModeKeyDown = (ev) => {
-    const {alt, ctrl, shift, modified} = this._getModifiers(ev);
-    let preventDefault = false;
-    let stopPropagation = false;
-    if (!modified) {
-      switch (ev.key) {
-        case 'Enter':
-          this.insertNewLine();
-          preventDefault = stopPropagation = true;
-          break;
-        default:  // input text
-          stopPropagation = true;
-          break;
-      }
-    } else if (ctrl) {
-      switch (ev.key) {
-        case 'k':  // ctrl-k from i-mode to n-mode
-          this.doEscape();
-          preventDefault = stopPropagation = true;
-          break;
-        default:
-          break;
-      }
-    }
-    if (preventDefault) ev.preventDefault();
-    if (stopPropagation) ev.stopPropagation()
-  }
-
-  _handleInputModeKeyUp = (ev) => {
-    //const {alt, ctrl, shift, modified} = this._getModifiers(ev);
-    //let preventDefault = false;
-    //let stopPropagation = false;
-    //if (!modified) {
-    //  switch (ev.key) {
-    //    default:
-    //      break;
-    //  }
-    //} else if (ctrl) {
-    //  switch (ev.key) {
-    //    default:
-    //      break;
-    //  }
-    //}
-    //if (preventDefault) ev.preventDefault();
-    //if (stopPropagation) ev.stopPropagation()
-  }
-
-  _handleNormalModeKeyDown = async (ev) => {
-    const {alt, ctrl, shift, modified} = this._getModifiers(ev);
-    let preventDefault = false;
-    let stopPropagation = false;
-    if (!modified) {
-      switch (ev.key) {
-        case 'i':
-          this.switchToInputMode();
-          preventDefault = stopPropagation = true;
-          break;
-        case 'a':
-          this.setState({
-            caretOffset: this.state.caretOffset + 1
-          }, this.switchToInputMode);
-          preventDefault = stopPropagation = true;
-          break;
-        case 'Enter':
-          this.insertNewLine();
-          preventDefault = stopPropagation = true;
-          break;
-        case 'Escape':
-          console.log('escape');
-          break;
-        default:  // input text
-          preventDefault = stopPropagation = true;
-          break;
-      }
-    } else if (ctrl) {
-      switch (ev.key) {
-        default:
-          break;
-      }
-    }
-    if (preventDefault) ev.preventDefault();
-    if (stopPropagation) ev.stopPropagation()
-  }
-
-  _handleNormalModeKeyUp = (ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-  }
-
-  _setCaretNode = async (node, offset) => {
-    let offsetMax = node.nodeValue.length;
-    if (this.inNormalMode() && offsetMax) {
-      --offsetMax;
-    }
-    offset = Math.max(0, Math.min(offset, offsetMax));
-    if (node.nodeType === Node.TEXT_NODE) {
-      if ($(node.parentNode).hasClass('dummy')) {
-        offset = 0;
-      }
-      await this._update({
-        caretNode: node,
-        caretOffset: offset,
-      });
-      this._updateCaret();
-    } else {
-      console.log('todo');
-    }
-  }
-
-  _takeInputValue = async () => {
-    const caretNode = this.state.caretNode;
-    let inputValue = this.input.value;
-    let offset = this.state.caretOffset;
-
-    if (caretNode.nodeType === Node.TEXT_NODE) {
-      const parentNode = $(caretNode.parentNode);
-      if (parentNode.hasClass('dummy')) {
-        caretNode.deleteData(0, 1);
-        parentNode.removeClass('dummy');
-      }
-      caretNode.insertData(offset, inputValue);
-      offset += inputValue.length;
-      this.input.value = '';
-
-      await this._update({caretOffset: offset});
-      this._updateCaret();
-    } else {
-      console.log('todo');
-    }
-  }
-
-  _updateCaret = () => {
-    const caretNode = this.state.caretNode;
-    const offset = this.state.caretOffset;
-
-    const range = new Range();
-    range.setStart(caretNode, offset);
-    range.setEnd(caretNode, offset);
-    const {left, top} = range.getClientRects()[0];
-
+  _updateCaret = (row, col) => {
+    const range = this._getCaretRange(row, col);
+    const rangeRect = range.getClientRects()[0];
+    const contentDiv = this.contentDiv;
+    const contentDivRect= contentDiv.getClientRects()[0];
+    const left = rangeRect.left - contentDivRect.left + contentDiv.scrollLeft;
+    const top = rangeRect.top - contentDivRect.top + contentDiv.scrollTop;
     $(this.input).css({left: left, top: top});
-    $(this.caret).css({left: left, top: top, display: 'inline-block'});
-  }
+    $(this.caret).css({left: left, top: top});
 
-  _getModifiers = (ev) => {
-    const alt = ev.getModifierState('Alt');
-    const ctrl = ev.getModifierState('Control');
-    const shift = ev.getModifierState('Shift');
-    return {
-      alt: alt,
-      ctrl: ctrl,
-      shift: shift,
-      modified: alt || ctrl || shift,
-    };
+    this.caret.scrollIntoViewIfNeeded(false);
   }
 
   _update = async (delta) => {
@@ -420,4 +974,87 @@ export default class Edi extends React.Component {
       this.setState(delta, resolve);
     });
   }
+
+  _getCaretRange = (row, col) => {
+    row = row == null ? this.row() : row;
+    col = col == null ? this.col() : col;
+    const range = new Range();
+    const lineNode = this._getLineNode(row).get(0);
+    let textNode = null;
+    let beg = 0;
+    let offset;
+    for (let child of lineNode.childNodes) {
+      const text = $(child).text();
+      const end = beg + text.length;
+      if (beg <= col && col <= end) {
+        if (child.nodeType !== Node.TEXT_NODE) {
+          child = child.firstChild;
+        }
+        textNode = child;
+        offset = col - beg;
+        break;
+      } else {
+        beg = end;
+      }
+    }
+    range.setStart(textNode, offset);
+    range.setEnd(textNode, offset);
+    return range;
+  }
+
+  _getLineNode = (row, caretOwner) => {
+    row = row == null ? this.row() : row;
+    if (caretOwner == null) {
+      caretOwner = this.caretOwner;
+    }
+    return $(caretOwner).find(`span.line:nth-child(${row * 2 + 1})`);
+  }
+
+  _isDummyLine = (row) => {
+    return this._getLineNode(row).hasClass('dummy');
+  }
+
+  _getColMax = (row) => {
+    let col = this.line(row).length;
+    if (!this.inInputMode()) {
+      --col;
+    }
+    return col;
+  }
+
+  _setCaret = async (row, col) => {
+    row = Math.max(0, Math.min(row, this.lines().length));
+    col = Math.max(0, Math.min(col, this.line(row).length));
+    await this._update({_row: row, _col: col});
+  }
+
+  _getCurrentCommand = () => {
+    return $('.command').text();
+  }
+
+  _setHintedCol = (col, force) => {
+    if (this._hintedCol == null) {
+      this._hintedCol = col;
+    } else if (force) {
+      this._hintedCol = col;
+    } else {
+      this._hintedCol = Math.max(col, this._hintedCol);
+    }
+  }
+
+  _getHintedCol = () => {
+    return this._hintedCol == null ? this.col() : this._hintedCol;
+  }
+
+  //onPaste = (ev) => {
+  //  const clipboardData = ev.clipboardData;
+  //  const items = clipboardData.items;
+  //  for (let i = 0; i < items.length; ++i) {
+  //    const item = items[i];
+  //    if (item.kind === 'file' && item.type.startswitch('image/')) {
+  //      const file = item.getAsFile();
+  //      // process file
+  //    }
+  //  }
+  //}
 };

@@ -49,7 +49,9 @@ class EditNote extends React.Component {
         onKeyUp={this.onKeyUp}
       >
         <Edi/>
-        <div className="buttons">
+        <div className="buttons horizontal">
+          <div className="left">
+          </div>
           <div className="right">
             <DangerButton id="delete" onClick={this.doDelete}>
               Delete
@@ -59,6 +61,7 @@ class EditNote extends React.Component {
             </button>
           </div>
         </div>
+        <input ref={ref => this.fileInput = ref} type="file" style={{display: 'none'}}/>
       </div>
     );
   }

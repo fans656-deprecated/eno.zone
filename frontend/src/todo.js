@@ -2,13 +2,38 @@ import React from 'react';
 
 const todo = `\
 Edi
-  select text (mouse)
+  ciw caw cw
+  yiw yaw yw
+  yy
+  dd
+  cc
+  C
+  D
+  di' da' (single quote / double quote / back tick)
+
+  custom normal cmd
+    ;d ;u(upload)
   backspace to delete
-  tab
+    ctrl-h ctrl-m ctrl-j
+
+  search (highlight)
+  find character
+    f F \
+  macro (qq)
+  normal cmd
+    J
+  tab (ctrl-i)
   vim selection mode
     v - visual
     V - visual line
     ctrl-v - visual block
+  indent/unindent
+    >> <<
+  paste clipboard (ctrl-shift-v?)
+  bug: block caret width on Chinese characters
+  bug: highlight multiple occurences in same line
+    lineNode.html() overwrite previous highlight
+  bug: searched word under caret is not highlighted
 
 Rich text edit
 
