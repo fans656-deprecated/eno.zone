@@ -43,12 +43,26 @@ function install(editor) {
   normal.add(':', editor.switchToCommandMode);
   normal.add('<c-k>', editor.noop);
 
+  // custom
+  normal.add(';u', editor.upload);
+  normal.add(';v', editor.preview);
+
   // dynamic (gg, diw, etc..)
   normal.add('', editor.feedNormalCommand);
 
   const input = new KeyMap();
   input.add('<c-k>', editor.escape);
-  input.add('<cr>', editor.insertLine);
+
+  input.add('<cr>', editor.pressEnter);
+  input.add('<c-m>', editor.pressEnter);
+
+  input.add('<bs>', editor.pressBackspace);
+  input.add('<c-h>', editor.pressBackspace);
+
+  input.add('<del>', editor.pressDel);
+  input.add('<c-e>', editor.pressDel);
+
+  input.add('<c-a>', editor.selectAll);
 
   const command = new KeyMap();
   command.add('<c-k>', editor.escapeFromCommandMode);

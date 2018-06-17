@@ -2,20 +2,19 @@ import React from 'react';
 
 const todo = `\
 Edi
-  ciw caw cw
-  yiw yaw yw
+  preview all (;v)
+  preview at caret (ctrl-d)
+    image / formula
+  upload (;u)
+  paste image (ctrl-shift-v?)
+  insert timestamp (;d)
+
   yy
-  dd
-  cc
   C
   D
   di' da' (single quote / double quote / back tick)
-
-  custom normal cmd
-    ;d ;u(upload)
-  backspace to delete
-    ctrl-h ctrl-m ctrl-j
-
+  ciw caw cw
+  yiw yaw yw
   search (highlight)
   find character
     f F \
@@ -29,24 +28,13 @@ Edi
     ctrl-v - visual block
   indent/unindent
     >> <<
-  paste clipboard (ctrl-shift-v?)
+  ctrl-j (newline without break current)
+
   bug: block caret width on Chinese characters
   bug: highlight multiple occurences in same line
     lineNode.html() overwrite previous highlight
   bug: searched word under caret is not highlighted
-
-Rich text edit
-
-  paste clipboard image
-  insert audio/video
-  write math formula
-
-  add a toolbar dropdown for multiple type
-    markdown
-    raw
-    edi
-  
-  https://github.com/quilljs/awesome-quill
+  bug: backspace/delete history
 
 Move all files to stome
   files/...

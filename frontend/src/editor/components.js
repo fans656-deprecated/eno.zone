@@ -11,7 +11,7 @@ export const Lines = ({editor}) => (
 export const Caret = ({editor}) => (
   <div
     className={'caret ' + editor._caretClass()}
-    ref={ref => editor.caret = ref}
+    ref={ref => editor.caretDiv = ref}
   >
     &nbsp;
   </div>
@@ -53,6 +53,7 @@ export const Content = ({editor, children}) => (
     onMouseMove={editor.onMouseMove}
     onMouseLeave={editor.onMouseLeave}
     onDragStart={editor.onDragStart}
+    onPaste={editor.onPaste}
   >
     {children}
   </div>

@@ -48,7 +48,9 @@ class EditNote extends React.Component {
         className="edit-blog"
         onKeyUp={this.onKeyUp}
       >
-        <Edi/>
+        <Edi
+          onUpload={this.onUpload}
+        />
         <div className="buttons horizontal">
           <div className="left">
           </div>
@@ -64,6 +66,10 @@ class EditNote extends React.Component {
         <input ref={ref => this.fileInput = ref} type="file" style={{display: 'none'}}/>
       </div>
     );
+  }
+
+  onUpload = () => {
+    this.fileInput.click();
   }
 
   onKeyUp = (ev) => {

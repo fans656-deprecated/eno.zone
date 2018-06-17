@@ -4,7 +4,7 @@ export default class History {
     this.ops = [];
   }
 
-  push = async ({undo, redo}) => {
+  push = async ({undo, redo, executeRedo}) => {
     let i = this.index;
     const ops = this.ops;
     const n = ops.length;
@@ -13,7 +13,9 @@ export default class History {
       ops.splice(i);
     }
     this.ops.push({undo: undo, redo: redo});
-    await redo();
+    if (executeRedo !== false) {
+      await redo();
+    }
   }
 
   pop = () => {

@@ -1,6 +1,7 @@
 import React from 'react'
 import $ from 'jquery'
 import _ from 'lodash'
+import clone from 'clone'
 
 import './edi.css'
 
@@ -32,6 +33,12 @@ export default class Edi extends React.Component {
       selectionAnchorRange: null,  // for mouse selection
     };
     this.history = new History();
+
+    // for input mode history
+    this.caretWhenEnterInputMode = null;
+    this.takenInputValues = [];  
+    this.inputModeChanges = [];
+
     this.resetNormalCmd();
     window.e = this;
   }
@@ -64,6 +71,12 @@ export default class Edi extends React.Component {
 
   col = () => {
     return this.state._col;
+  }
+
+  caret = (row, col) => {
+    row = row == null ? this.row() : row;
+    col = col == null ? this.col() : col;
+    return [row, col];
   }
 
   savedRow = () => {
@@ -183,14 +196,32 @@ export default class Edi extends React.Component {
   selectAll = () => {
     const selection = window.getSelection();
     const range = document.createRange();
-    range.selectNodeContents(this.contentDiv);
+    range.selectNodeContents(this.linesDiv);
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+
+  onPaste = (ev) => {
+    const clipboardData = ev.clipboardData;
+    const items = clipboardData.items;
+    for (let i = 0; i < items.length; ++i) {
+      const item = items[i];
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const file = item.getAsFile();
+        // process file
+        console.log(file);
+        this.insertText(this.row(), this.col(), '[screenshot.png]');
+      }
+    }
   }
 
   escape = async () => {
     switch (this.state.mode) {
       case Mode.Input:
+        this._prepareNewInputModeChange();
+        await this._pushInputModeHistory();
+        await this.switchToNormalMode();
+        break;
       case Mode.Command:
         await this.switchToNormalMode();
         break;
@@ -198,6 +229,39 @@ export default class Edi extends React.Component {
         break;
     }
   }
+
+  upload = () => {
+    console.log('upload');
+    this.props.onUpload();
+  }
+
+  preview = () => {
+    console.log('preview');
+  }
+
+  _pushInputModeHistory = async () => {
+    const inputModeChanges = clone(this.inputModeChanges);
+    this.inputModeChanges = [];
+    await this.history.push({
+      redo: async () => {
+        for (const {row, col, text} of inputModeChanges) {
+          await this.insertText(row, col, text);
+        };
+      },
+      undo: async () => {
+        let changes = clone(inputModeChanges);
+        changes.reverse();
+        for (const {row, col, text} of changes) {
+          const lines = text.split('\n');
+          const endRow = row + lines.length;
+          const endCol = col + lines[lines.length - 1].length;
+          await this.deleteText(row, col, endRow, endCol);
+        };
+      },
+      executeRedo: false,
+    });
+  }
+
 
   gotoFirstRow = async () => {
     await this.gotoRow(0);
@@ -233,11 +297,63 @@ export default class Edi extends React.Component {
   rsearch = (pattern, row, col) => {
   }
 
+  insertText = async (row, col, text) => {
+    const lines = text.split('\n');
+    const firstLineText = lines.shift();
+    this._insertTextInLine(row, col, firstLineText);
+    if (lines.length) {
+      this.lines().splice(row + 1, 0, ...lines);
+      const lastLine = lines[lines.length - 1];
+      await this._setCaret(row + lines.length, lastLine.length - 1);
+    } else {
+      await this._setCaret(row, col + firstLineText.length);
+    }
+  }
+
   insertTextInLine = async (row, col, text) => {
+    this._insertTextInLine(row, col, text);
+    await this._setCaret(row, col);
+  }
+
+  doDeleteLine = async () => {
+    const row = this.row();
+    const line = this.line();
+    await this.history.push({
+      redo: async () => {
+        await this.deleteLine(row);
+      },
+      undo: async () => {
+        await this.insertLine(row, line);
+      }
+    });
+  }
+
+  doChangeLine = async () => {
+    // TODO: undo
+    const row = this.row();
+    await this.changeLine(row);
+  }
+
+  deleteLine = async (row) => {
+    this.lines().splice(row, 1);
+    await this._setCaret(row, this.col());
+  }
+
+  insertLine = async (row, line) => {
+    this.lines().splice(row, 0, line);
+    await this._setCaret(row, this._getHintedCol());
+  }
+
+  changeLine = async (row) => {
+    this.lines()[row] = '';
+    await this._setCaret(row, 0);
+    await this.switchToInputMode();
+  }
+
+  _insertTextInLine = (row, col, text) => {
     let line = this.line(row);
     line = line.substring(0, col) + text + line.substring(col);
     this.lines()[row] = line;
-    await this._setCaret(row, col);
   }
 
   deleteChar = async (row, col) => {
@@ -260,11 +376,26 @@ export default class Edi extends React.Component {
     });
   }
 
-  deleteTextInLine = async (row, col0, col1) => {
+  deleteText = async (begRow, begCol, endRow, endCol) => {
+    if (begRow + 1 === endRow) {
+      await this.deleteTextInLine(begRow, begCol, endCol);
+    } else {
+      const firstLine = this.line(begRow);
+      this._deleteTextInLine(begRow, begCol, firstLine.length);
+      this.lines().splice(begRow + 1, endRow - begRow - 1);
+      await this._setCaret(begRow, begCol - 1);
+    }
+  }
+
+  deleteTextInLine = async (row, begCol, endCol) => {
+    this._deleteTextInLine(row, begCol, endCol);
+    await this._setCaret(row, Math.min(begCol, this.line(row).length - 1));
+  }
+
+  _deleteTextInLine = async (row, begCol, endCol) => {
     let line = this.line(row);
-    line = line.substring(0, col0) + line.substring(col1);
+    line = line.substring(0, begCol) + line.substring(endCol);
     this.lines()[row] = line;
-    await this._setCaret(row, Math.min(col0, line.length - 1));
   }
 
   undo = async () => {
@@ -379,22 +510,22 @@ export default class Edi extends React.Component {
           console.log(`============= ${this.normalCmd.type} ${op.type} {}`);
         }
         return this.resetNormalCmd();
-      case 'd':
+      case 'd':  // dd
         if (type === NormalOperation.Deletion) {
-          console.log(`============= ${this.normalCmd.type} line`);
+          this.doDeleteLine();
         }
         return this.resetNormalCmd()
-      case 'c':
+      case 'c':  // cc
         if (type === NormalOperation.Change) {
-          console.log(`============= ${this.normalCmd.type} line`);
+          this.doChangeLine();
         }
         return this.resetNormalCmd()
-      case 'y':
+      case 'y':  // yy
         if (type === NormalOperation.Yank) {
           console.log(`============= ${this.normalCmd.type} line`);
         }
         return this.resetNormalCmd()
-      case 'g':
+      case 'g':  // gg
         if (type === NormalOperation.Goto) {
           this.gotoRow(0);
         }
@@ -484,7 +615,6 @@ export default class Edi extends React.Component {
     for (let i = 0; i < count; ++i) {
       word = this.word(row, col);
       const toPrevWord = word.beg === word.col;
-      console.log(toPrevWord, row, col, word);
       if (toPrevWord) {
         const toPrevLine = word.spaceBeg === 0;
         if (toPrevLine) {
@@ -575,8 +705,8 @@ export default class Edi extends React.Component {
   }
 
   insertHeadToInputMode = () => {
-    this.switchToInputMode(() => {
-      this._setCaret(this.row(), 0);
+    this.switchToInputMode(async () => {
+      await this._setCaret(this.row(), 0);
     });
   }
 
@@ -608,9 +738,9 @@ export default class Edi extends React.Component {
     });
   }
 
-  insertLine = async (row, col) => {
-    row = row == null ? this.row() : row;
-    col = col == null ? this.col() : col;
+  pressEnter = async (row, col) => {
+    this.takenInputValues.push('\n');
+    [row, col] = this.caret(row, col);
     if (col === 0) {
       this._insertLine(row);
       await this._setCaret(row + 1, 0);
@@ -621,6 +751,48 @@ export default class Edi extends React.Component {
       this._splitLine(row, col);
       await this._setCaret(row + 1, 0);
     }
+  }
+
+  pressBackspace = async () => {
+    if (this.takenInputValues.length) {
+      const text = this.takenInputValues.pop();
+      if (text.length > 1) {
+        this.takenInputValues.push(text.substring(0, text.length - 1));
+      }
+    }
+    const [row, col] = this.caret();
+    if (row === 0 && col === 0) {
+      return;
+    } else if (col === 0) {
+      const line = this.line(row - 1);
+      this.joinLines(row - 1, row);
+      await this._setCaret(row - 1, line.length);
+    } else {
+      await this._deleteTextInLine(row, col - 1, col);
+      await this._setCaret(row, col - 1);
+    }
+  }
+
+  pressDel = async () => {
+    // TODO: del history
+    const [row, col] = this.caret();
+    let line = this.line();
+    if (row === this.lines().length - 1 && col === line.length) {
+      return;
+    } else if (col === line.length) {
+      const line = this.line(row + 1);
+      this.joinLines(row, row + 1);
+      await this._setCaret(row, col);
+    } else {
+      await this._deleteTextInLine(row, col, col + 1);
+      await this._setCaret(row, col);
+    }
+  }
+
+  joinLines = (...rows) => {
+    const row = rows[0];
+    const line = rows.map(row => this.line(row)).join('');
+    this.lines().splice(row, rows.length, line);
   }
 
   _splitLine = (row, col) => {
@@ -649,8 +821,9 @@ export default class Edi extends React.Component {
       mode: Mode.Input,
     });
     if (callback) {
-      callback();
+      await callback();
     }
+    this._prepareNewInputModeChange();
     this.input.focus();
   }
 
@@ -739,10 +912,15 @@ export default class Edi extends React.Component {
     if (!modifiers.modified || modifiers.shiftOnly) {
       switch (ev.key) {
         case 'Shift':
-          console.log('shift');
           return;
         case 'Enter':
           key = '<cr>';
+          break;
+        case 'Backspace':
+          key = '<bs>';
+          break;
+        case 'Delete':
+          key = '<del>';
           break;
         default:  // input text
           key = ev.key;
@@ -834,10 +1012,35 @@ export default class Edi extends React.Component {
       col = offset;
     }
     await this.setCaret(row, col);
+
+    // for input mode history
+    if (this.inInputMode()) {
+      this._prepareNewInputModeChange();
+    }
+  }
+
+  _prepareNewInputModeChange = () => {
+    if (this.takenInputValues.length) {
+      const change = {
+        row: this.caretWhenEnterInputMode.row,
+        col: this.caretWhenEnterInputMode.col,
+        text: this.takenInputValues.join(''),
+      };
+      this.inputModeChanges.push(change);
+    }
+    this.caretWhenEnterInputMode = {
+      row: this.row(),
+      col: this.col(),
+    };
+    this.takenInputValues = [];
   }
 
   _takeInputValue = async () => {
     let text = this.input.value;
+    if (text.length === 0) {
+      // IME cancel
+      return;
+    }
 
     const row = this.row();
     let col = this.col();
@@ -846,6 +1049,7 @@ export default class Edi extends React.Component {
       const lines = this.lines();
       const line = this.line();
       lines[row] = insertTextAt(line, text, col);
+      this.takenInputValues.push(text);
     }
 
     const lineNode = this._getLineNode();
@@ -964,9 +1168,9 @@ export default class Edi extends React.Component {
     const left = rangeRect.left - contentDivRect.left + contentDiv.scrollLeft;
     const top = rangeRect.top - contentDivRect.top + contentDiv.scrollTop;
     $(this.input).css({left: left, top: top});
-    $(this.caret).css({left: left, top: top});
+    $(this.caretDiv).css({left: left, top: top});
 
-    this.caret.scrollIntoViewIfNeeded(false);
+    this.caretDiv.scrollIntoViewIfNeeded(false);
   }
 
   _update = async (delta) => {
@@ -1025,6 +1229,9 @@ export default class Edi extends React.Component {
   _setCaret = async (row, col) => {
     row = Math.max(0, Math.min(row, this.lines().length));
     col = Math.max(0, Math.min(col, this.line(row).length));
+    if (!this.inInputMode() && col && col === this.line(row).length) {
+      --col;
+    }
     await this._update({_row: row, _col: col});
   }
 
@@ -1045,16 +1252,4 @@ export default class Edi extends React.Component {
   _getHintedCol = () => {
     return this._hintedCol == null ? this.col() : this._hintedCol;
   }
-
-  //onPaste = (ev) => {
-  //  const clipboardData = ev.clipboardData;
-  //  const items = clipboardData.items;
-  //  for (let i = 0; i < items.length; ++i) {
-  //    const item = items[i];
-  //    if (item.kind === 'file' && item.type.startswitch('image/')) {
-  //      const file = item.getAsFile();
-  //      // process file
-  //    }
-  //  }
-  //}
 };

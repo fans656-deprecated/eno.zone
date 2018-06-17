@@ -12,7 +12,7 @@ export default class KeyMap {
       if (keysStr.startsWith('<')) {
         this._add([keysStr], callback);
       } else {
-        this._add(keysStr.split(), callback);
+        this._add(keysStr.split(''), callback);
       }
     }
   }
