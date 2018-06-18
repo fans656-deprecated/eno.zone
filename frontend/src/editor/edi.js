@@ -8,29 +8,33 @@ import './edi.css'
 import vimrc from './vimrc'
 import History from './history'
 import {
-  Mode, NormalOperation, NormalOperand,
+  Mode, NormalOperation, NormalOperand, NormalHandled,
 } from './constants'
 import {
   Editor, Content, Lines, Caret, Input, CommandBar,
+  Preview,
 } from './components'
 import {
   insertTextAt, searchAll, isDigit, getWord,
 } from './utils'
+import { parseElems } from '../eno/parse_line'
 
-import { lines } from './tmp'
+//import { lines } from './tmp'
 
 export default class Edi extends React.Component {
   constructor(props) {
     super(props);
+    const lines = this.props.content.split('\n');
     this.state = {
-      _lines: lines.slice(0, 30),
+      _lines: lines.length ? lines : [''],
       _row: 0,
       _col: 0,
       keymaps: vimrc.install(this),
       focused: false,
-      mode: Mode.Input,
+      mode: Mode.Normal,
       inIME: false,  // for e.g. input Chinese
       selectionAnchorRange: null,  // for mouse selection
+      previewElem: null,
     };
     this.history = new History();
 
@@ -43,9 +47,10 @@ export default class Edi extends React.Component {
     window.e = this;
   }
 
-  componentDidMount = () => {
+  componentDidMount = async () => {
     this.caretOwner = this.linesDiv;
     this._updateCaret();
+    this.focus();  // only work when vimium don't steal the focus
   }
 
   componentDidUpdate = () => {
@@ -60,6 +65,7 @@ export default class Edi extends React.Component {
           <Caret editor={this}/>
           <Input editor={this}/>
           <CommandBar editor={this}/>
+          <Preview editor={this}/>
         </Content>
       </Editor>
     );
@@ -107,6 +113,10 @@ export default class Edi extends React.Component {
 
   lines = () => {
     return this.state._lines;
+  }
+
+  text = () => {
+    return this.lines().join('\n');
   }
 
   textInLine = (row, beg, end) => {
@@ -215,6 +225,34 @@ export default class Edi extends React.Component {
     }
   }
 
+  scrollUp = () => {
+    // TODO
+  }
+
+  scrollDown = () => {
+    // TODO
+  }
+
+  previewAtCaret = async () => {
+    const col = this.col();
+    const elems = parseElems(this.line());
+    const elem = elems.filter(e => e.beg <= col && col < e.end)[0];
+    if (!elem) {
+      return;
+    }
+    if (this.state.previewElem) {
+      // toggle off
+      this._update({previewElem: null});
+    } else {
+      // toggle on
+      await this._update({previewElem: elem});
+      const preview = $('.preview').get(0);
+      if (preview) {
+        preview.scrollIntoViewIfNeeded(false);
+      }
+    }
+  }
+
   escape = async () => {
     switch (this.state.mode) {
       case Mode.Input:
@@ -228,6 +266,18 @@ export default class Edi extends React.Component {
       default:
         break;
     }
+  }
+
+  save = () => {
+    this.props.onSave(this.text());
+  }
+
+  quit = () => {
+    this.props.onQuit();
+  }
+
+  saveAndQuit = () => {
+    this.props.onSaveAndQuit(this.text());
   }
 
   upload = () => {
@@ -335,7 +385,11 @@ export default class Edi extends React.Component {
   }
 
   deleteLine = async (row) => {
-    this.lines().splice(row, 1);
+    const lines = this.lines();
+    lines.splice(row, 1);
+    if (row > lines.length - 1) {
+      --row;
+    }
     await this._setCaret(row, this.col());
   }
 
@@ -427,16 +481,6 @@ export default class Edi extends React.Component {
     });
   }
 
-  feedNormalCommand = (key) => {
-    if (this.normalCmd.type) {
-      // e.g. d[d]
-      return this._handleNormalOperand(key);
-    } else {
-      // e.g. [d]d [d]iw
-      return this._changeNormalCmdType(key);
-    }
-  }
-
   resetNormalCmd = () => {
     this.normalCmd = {
       digits: [],
@@ -462,31 +506,14 @@ export default class Edi extends React.Component {
     return this.normalCmd.digits.length > 0;
   }
 
-  _changeNormalCmdType = (key) => {
-    switch (key) {
-      case 'd':
-        return this._changeNormalOperationType(NormalOperation.Deletion);
-      case 'c':
-        return this._changeNormalOperationType(NormalOperation.Change);
-      case 'y':
-        return this._changeNormalOperationType(NormalOperation.Yank);
-      case 'g':
-        return this._changeNormalOperationType(NormalOperation.Goto);
-      default:
-        if (isDigit(key)) {
-          this.normalCmd.digits.push(key);
-        } else {
-          this.resetNormalCmd();
-        }
-        return true;
+  feedNormalCommand = (key) => {
+    if (this.normalCmd.type) {
+      // e.g. d[d]
+      return this._handleNormalOperand(key);
+    } else {
+      // e.g. [d]d [d]iw
+      return this._changeNormalCmdType(key);
     }
-  }
-
-  _changeNormalOperationType = (type) => {
-    const normalCmd = this.normalCmd;
-    normalCmd.type = type;
-    normalCmd.op = {};
-    return null;
   }
 
   _handleNormalOperand = (key) => {
@@ -540,6 +567,34 @@ export default class Edi extends React.Component {
     }
   }
 
+  _changeNormalCmdType = (key) => {
+    switch (key) {
+      case 'd':
+        return this._changeNormalOperationType(NormalOperation.Deletion);
+      case 'c':
+        return this._changeNormalOperationType(NormalOperation.Change);
+      case 'y':
+        return this._changeNormalOperationType(NormalOperation.Yank);
+      case 'g':
+        return this._changeNormalOperationType(NormalOperation.Goto);
+      default:
+        if (isDigit(key)) {
+          this.normalCmd.digits.push(key);
+          return true;
+        } else {
+          this.resetNormalCmd();
+          return false;
+        }
+    }
+  }
+
+  _changeNormalOperationType = (type) => {
+    const normalCmd = this.normalCmd;
+    normalCmd.type = type;
+    normalCmd.op = {};
+    return NormalHandled.Continue;
+  }
+
   _handleWordOperation = (type, op) => {
     console.log(`============= ${type} ${op.type} word`);
     const word = this.word();
@@ -559,9 +614,10 @@ export default class Edi extends React.Component {
         }
         break;
       default:
-        break;
+        this.resetNormalCmd();
+        return false;
     }
-    return this.resetNormalCmd()
+    return this.resetNormalCmd();
   }
 
   _changeNormalOperandType = (key) => {
@@ -569,10 +625,10 @@ export default class Edi extends React.Component {
     switch (key) {
       case 'i':
         op.type = NormalOperand.Inside;
-        return null;
+        return NormalHandled.Continue;
       case 'a':
         op.type = NormalOperand.Around;
-        return null;
+        return NormalHandled.Continue;
       default:
         this.resetNormalCmd();
         return true;
@@ -693,7 +749,7 @@ export default class Edi extends React.Component {
     const keymap = this.state.keymaps[this.state.mode];
     if (keymap) {
       const handled = keymap.feed(key);
-      if (handled === true || handled == null) {
+      if (handled === true || handled === null) {
         return true;
       }
     }
@@ -780,7 +836,6 @@ export default class Edi extends React.Component {
     if (row === this.lines().length - 1 && col === line.length) {
       return;
     } else if (col === line.length) {
-      const line = this.line(row + 1);
       this.joinLines(row, row + 1);
       await this._setCaret(row, col);
     } else {
@@ -824,7 +879,6 @@ export default class Edi extends React.Component {
       await callback();
     }
     this._prepareNewInputModeChange();
-    this.input.focus();
   }
 
   searchToCommandMode = async () => {
@@ -999,7 +1053,12 @@ export default class Edi extends React.Component {
     }
     let lineNode = $(node.parentNode);
     while (!lineNode.hasClass('line')) {
-      lineNode = lineNode.parent();
+      const parent = lineNode.parent();
+      if (lineNode.length === 0) {
+        // not line element, e.g. preview image
+        return;
+      }
+      lineNode = parent;
     }
     const row = Math.floor(lineNode.prevAll().length / 2);
     const offset = range.startOffset;
@@ -1232,7 +1291,11 @@ export default class Edi extends React.Component {
     if (!this.inInputMode() && col && col === this.line(row).length) {
       --col;
     }
-    await this._update({_row: row, _col: col});
+    await this._update({
+      _row: row,
+      _col: col,
+      previewElem: null,
+    });
   }
 
   _getCurrentCommand = () => {

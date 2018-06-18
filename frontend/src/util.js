@@ -1,3 +1,4 @@
+import $ from 'jquery';
 import jwt_decode from 'jwt-decode';
 import Cookies from 'js-cookie';
 
@@ -104,4 +105,51 @@ export function getOwner() {
   } else {
     return new User({username: ''});
   }
+}
+
+export function parseNoteMeta(notemeta) {
+  const meta = {};
+
+  // these can't be edited
+  delete notemeta.id;
+  delete notemeta.owner;
+  delete notemeta.content
+
+  // tag: foo bar => tags: ['foo', 'bar']
+  const tags = notemeta.tags || [];
+  const _tag = notemeta.tag;
+  if (_tag) {
+    delete notemeta.tag;
+    tags.push(..._tag.split(/\s+/));
+  }
+  if (tags) {
+    meta.tags = tags;
+  }
+
+  // url: foo/bar => urls: ['foo/bar']
+  const urls = notemeta.urls || [];
+  const _url = notemeta.url;
+  if (_url) {
+    delete notemeta.url;
+    urls.push(_url);
+  }
+  if (urls) {
+    meta.urls = urls;
+  }
+
+  $.extend(meta, notemeta);
+  return meta;
+}
+
+export function extractYamlText(text) {
+  if (text.startsWith('\n')) {
+    const end = text.search(/\n\n/);
+    if (end !== -1) {
+      // has meta yaml
+      const yamltext = text.substring(1, end);
+      text = text.substring(1 + yamltext.length + 2);
+      return [yamltext, text];
+    }
+  }
+  return [null, text];
 }

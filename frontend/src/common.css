@@ -1,4 +1,7 @@
 .eno-button {
+  font-size: .85em;
+  display: inline-block;
+  text-align: center;
   min-width: 120px;
   height: 32px;
   line-height: 32px;

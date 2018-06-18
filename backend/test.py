@@ -1,18 +1,16 @@
-import noter
-import pymongo
-
-r = noter.get_notes({
-})
-notes = r['notes']
-print notes[0]
+from stome import db
+from stome.tests.prepare import *
+from stome.filesystem.node import get_node_by_path
+from stome.filesystem.fsutil import erase_everything
 
 
-#print noter.get_note(0)
+#r = db.storage.find({})
+#for x in r:
+#    print x
 
-
-
-#db = pymongo.MongoClient().enozone
-#r = db.note.find({
-#    'owner': 'foo'
-#})
-#print r.count()
+init()
+#erase_everything()
+#print get_node_by_path('/')
+#
+#r = db.getdb().node.find_one({'path': '/'}, {'_id': False})
+#print r

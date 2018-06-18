@@ -16,6 +16,7 @@ export function parseRefDef(line) {
 
 export function parseElems(line) {
   const elems = [];
+  let col = 0;
   while (line.length) {
     const match = line.match(R.elem);
     if (!match) break;
@@ -23,8 +24,14 @@ export function parseElems(line) {
     const end = beg + match[0].length;
     const pre = line.substring(0, beg);
     line = line.substring(end);
-    if (pre.length) elems.push(new TextElem(pre));
+    if (pre.length) {
+      elems.push(new TextElem(pre));
+      col += pre.length;
+    }
     const elem = parseElem(match);
+    elem.beg = col;
+    elem.end = col + end - beg;
+    col += end - beg;
     elems.push(elem);
   }
   if (line) elems.push(new TextElem(line));

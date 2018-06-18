@@ -1,6 +1,35 @@
 import React from 'react';
+import { InlineMath, BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 
 import { renderContent } from './utils';
+
+export const Editor = ({editor, children}) => (
+  <div
+    className={editor._getEditorClassName()}
+    ref={ref => editor.editor = ref}
+  >
+    {children}
+  </div>
+)
+
+export const Content = ({editor, children}) => (
+  <div
+    className="content"
+    tabIndex="0"
+    ref={ref => editor.contentDiv = ref}
+    onFocus={editor.onFocus}
+    onClick={editor.onClick}
+    onMouseDown={editor.onMouseDown}
+    onMouseUp={editor.onMouseUp}
+    onMouseMove={editor.onMouseMove}
+    onMouseLeave={editor.onMouseLeave}
+    onDragStart={editor.onDragStart}
+    onPaste={editor.onPaste}
+  >
+    {children}
+  </div>
+)
 
 export const Lines = ({editor}) => (
   <div className="lines" ref={ref => editor.linesDiv = ref}>
@@ -22,6 +51,7 @@ export const Input = ({editor}) => (
     className="input"
 
     ref={ref => editor.input = ref}
+    onBlur={editor.onBlur}
 
     onKeyDown={editor.onKeyDown}
 
@@ -40,30 +70,43 @@ export const CommandBar = ({editor}) => (
   </div>
 )
 
-export const Content = ({editor, children}) => (
-  <div
-    className="content"
-    tabIndex="0"
-    ref={ref => editor.contentDiv = ref}
-    onFocus={editor.onFocus}
-    onBlur={editor.onBlur}
-    onClick={editor.onClick}
-    onMouseDown={editor.onMouseDown}
-    onMouseUp={editor.onMouseUp}
-    onMouseMove={editor.onMouseMove}
-    onMouseLeave={editor.onMouseLeave}
-    onDragStart={editor.onDragStart}
-    onPaste={editor.onPaste}
-  >
-    {children}
-  </div>
-)
+export class Preview extends React.Component {
+  render = () => {
+    const editor = this.props.editor;
+    const elem = editor.state.previewElem;
+    if (!elem) {
+      return null;
+    }
+    let component;
+    switch (elem.type) {
+      case 'image':
+        component = <PreviewImage elem={elem}/>;
+        break;
+      case 'inline_formula':
+        component = <PreviewFormula elem={elem}/>;
+        break;
+      default:
+        return null;
+    }
+    return (
+      <div className="preview">
+        {component}
+      </div>
+    );
+  }
+}
 
-export const Editor = ({editor, children}) => (
-  <div
-    className={editor._getEditorClassName()}
-    ref={ref => editor.editor = ref}
-  >
-    {children}
-  </div>
-)
+export const PreviewImage = ({elem}) => {
+  return (
+    <img src={elem.value} alt={elem.value}/>
+  );
+}
+
+export const PreviewFormula = ({elem}) => {
+  console.log(elem.value);
+  return (
+    <div className="formula">
+      <BlockMath>{elem.value}</BlockMath>
+    </div>
+  );
+}

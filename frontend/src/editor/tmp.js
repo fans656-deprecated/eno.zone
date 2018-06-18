@@ -4,6 +4,17 @@ this is just a test
 import _ from 'lodash'
 import katex from 'katex'
 
+[https://jp.netcdn.space/digital/video/118abp00119/118abp00119pl.jpg]
+
+inline formula \`\`e=mc^2\`\` test
+
+\`\`f(x) = \\int_{-\\infty}^\\infty g(x)\`\`
+
+inline image [https://ub:5000/fans656.jpg] test
+
+[https://ub:5000/girl.jpg]
+[https://ub:5000/cheetah-cub.png]
+
 import './edi.css'
 import 'katex/dist/katex.min.css'
 

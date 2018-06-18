@@ -1,6 +1,7 @@
 #import view_user, view_misc
 #import view_read, view_gallery, view_leetcode
 import view
+import stome
 
 endpoints = [
     # login
@@ -41,3 +42,30 @@ endpoints = [
     #('GET', '/static/<path:path>', view_misc.get_static),
     #('GET', '/file/<path:path>', view_misc.get_file),
 ]
+
+stome_endpoints = {
+    stome.views.head_path: [
+        ('HEAD', '/res/'),
+        ('HEAD', '/res/<path:path>'),
+    ],
+    stome.views.options_path: [
+        ('OPTIONS', '/res/'),
+        ('OPTIONS', '/res/<path:path>'),
+    ],
+    stome.views.get_path: [
+        ('GET', '/res/'),
+        ('GET', '/res/<path:path>'),
+    ],
+    stome.views.put_path: [
+        ('PUT', '/res/'),
+        ('PUT', '/res/<path:path>'),
+    ],
+    stome.views.post_path: [
+        ('POST', '/res/'),
+        ('POST', '/res/<path:path>'),
+    ],
+    stome.views.delete_path: [
+        ('DELETE', '/res/'),
+        ('DELETE', '/res/<path:path>'),
+    ],
+}

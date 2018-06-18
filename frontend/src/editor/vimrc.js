@@ -41,9 +41,14 @@ function install(editor) {
   normal.add('/', editor.searchToCommandMode);
   normal.add('?', editor.rsearchToCommandMode);
   normal.add(':', editor.switchToCommandMode);
-  normal.add('<c-k>', editor.noop);
+  normal.add('<c-k>', editor.scrollUp);
+  normal.add('<c-j>', editor.scrollDown);
+  normal.add('<c-d>', editor.previewAtCaret);
 
   // custom
+  normal.add(';w', editor.save);
+  normal.add(';x', editor.quit);
+  normal.add(';q', editor.saveAndQuit);
   normal.add(';u', editor.upload);
   normal.add(';v', editor.preview);
 
@@ -55,6 +60,7 @@ function install(editor) {
 
   input.add('<cr>', editor.pressEnter);
   input.add('<c-m>', editor.pressEnter);
+  input.add('<c-j>', editor.pressEnter);
 
   input.add('<bs>', editor.pressBackspace);
   input.add('<c-h>', editor.pressBackspace);

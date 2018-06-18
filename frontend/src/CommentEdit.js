@@ -2,7 +2,7 @@ import React from 'react'
 import { Link } from 'react-router-dom'
 //import IconDelete from 'react-icons/lib/md/delete'
 
-import { Textarea } from './common';
+import { Button, Textarea } from './common';
 import { postComment } from './util';
 
 export default class CommentEdit extends React.Component {
@@ -80,8 +80,7 @@ export default class CommentEdit extends React.Component {
               </div>
             </div>
           }
-          <button
-            className="eno-button"
+          <Button
             style={{
               marginLeft: 'auto',
               marginRight: '1px',
@@ -89,7 +88,7 @@ export default class CommentEdit extends React.Component {
             }}
             onClick={this.doPost}>
             Post
-          </button>
+          </Button>
         </div>
       </div>
     )

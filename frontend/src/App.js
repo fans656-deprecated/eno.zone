@@ -11,7 +11,13 @@ import Profile from './Profile';
 import NoteList from './NoteList';
 import EditNote from './EditNote';
 import Note from './Note';
+import Explorer from './stome/Explorer';
 import './css/style.css'
+import './stome/css/style.css'
+
+const RES_PREFIX = '/res';
+const RES_PREFIX_SLASH = '/res/';
+const RES_PREFIX_LEN = RES_PREFIX.length;
 
 class App extends React.Component {
   constructor(props) {
@@ -24,8 +30,15 @@ class App extends React.Component {
   render() {
     const visitor = this.props.visitor;
     const owner = this.props.owner;
+    const pathname = window.location.pathname;
+    if (pathname.startsWith(RES_PREFIX_SLASH) || pathname === RES_PREFIX) {
+      return <Explorer
+        rootPath={'/'}
+        currentPath={pathname.substring(RES_PREFIX_LEN)}
+      />;
+    }
     return (
-      <div id="root-page">
+      <div id="root-page" className="ez">
         <Header user={visitor}
           consoleHandlers={this.state.consoleHandlers}
         />

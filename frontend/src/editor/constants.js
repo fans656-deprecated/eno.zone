@@ -15,3 +15,7 @@ export const NormalOperand = {
   Inside: 'inside',
   Around: 'around',
 };
+
+export const NormalHandled = {
+  Continue: 'continue',
+};

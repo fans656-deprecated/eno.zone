@@ -2,10 +2,11 @@
   --bg-color: aliceblue;
   --fg-color: #333333;
   --text-color: #333333;
+  --font-famliy: 'Arial';
 }
 
 html {
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .reverse-color {
@@ -22,7 +23,7 @@ html,body {
   margin: 0;
   background: var(--bg-color);
   color: var(--text-color);
-  font-family: 'Arial';
+  font-family: var(--font-family);
   height: 100%;
 }
 
@@ -177,7 +178,7 @@ input.visitor-name {
 /* ------------------------------------------ blogs */
 
 .blog {
-  font-size: .9rem;
+  font-size: .9em;
   line-height: 2;
 }
 
@@ -583,6 +584,9 @@ input::placeholder {
   cursor: pointer;
 }
 
+textarea {
+  font-family: var(--font-family);
+}
 
 @font-face {
   font-family: matrix;

@@ -368,3 +368,190 @@ quill自定义embed
 还有就是最蛋疼的想要有空白行必须多空一行，或者反直觉的行位两个空格
 自己定义一个eno格式，可以用自己觉得最方便的写法
 加上edi的仿vim编辑，一个文本框解决content和meta的同时处理
+
+
+2018-06-19 00:13:06
+把stome集成到eno.zone里了，因为要共用前端七牛上传的部分
+于是把devlog也挪到这里
+
+============================================================= stome devlog
+2018-04-25 08:00:50
+. upload with mime-type
+. upload large file
+
+2018-04-26 20:56:37
+. download large file
+
+2018-04-29 22:44:52
+. video stream
+
+实验HLS(HTTP Live Streaming)成功，可以在线播放视频
+之后就是把API完善下，测试完备
+再支持上七牛云的存储
+然后就可以做网站了
+
+2018-05-01 09:29:39
+发现支持一下rsync也很不错
+fans656.me提供package上传功能，那么整个package的上传用rsync来做，就可以在命令行一下子传上去一个文件夹
+
+
+) frontend renamed upload
+) delete file
+) auth server
+) frontend user login
+
+2018-05-16 23:27:20
+
+***** below is thinking about file uploading
+
+PUT /img/girl.jpg
+{
+    'size': 2073,
+    'part-size': 128,
+    'part-beg': 1024,
+    'start': true,
+}
+
+[empty/done => uploading]
+
+    create/truncate file with name md5(path) for writing
+
+when all part is verified
+
+[uploading => storing]
+
+    initiate store process
+
+when any storage is done
+
+[storing => done]
+
+
+============================= md5(path) file deletion
+
+when a storing process is done or failed
+storing count +1
+when storing_count == total_storage_count
+delete the md5(path) file
+
+============================= storage process
+
+----------------------------- local
+
+[init => storing]
+
+    copy file to path
+
+[storing => done]
+
+----------------------------- qiniu
+
+[init => encrypting]
+
+    create file 'qiniu-encrypting' + md5(path) for writing
+
+when done writing
+
+[encrypting => uploading]
+
+    upload the file to qiniu
+
+[upload => done]
+
+===================== tech issues
+
+1. [done] How to manage process/thread execution
+2. [done] How to partly update mongodb document
+3. How to upload to qiniu
+
+2018-05-30 07:52:16
+) js split and encrypt and upload to qiniu
+
+2018-05-30 09:52:24
+http://dns.xsazz.com/
+用这个网站的备案二级域名绑了七牛云
+
+2018-05-30 20:49:38
+) create upload token
+
+2018-06-05 00:43:01
+总算把很核心的一个东西给弄好了：七牛云上传与下载
+期间各种蛋疼——HTTPS、绑定备案域名、文件混淆、client下载、service worker
+anyway, 总是解决了，，以后是不是真的可用再说吧，测试域名+存2T东西其实挺贵的每个月
+
+2018-06-05 19:19:07
+打开new tab时如果用不同的origin那么service worker就截不下请求
+所以看样子需要只用一个后端，，用service worker截到的fetch请求这个样子：
+
+    https://ub:3000/static/js/bundle.js
+    https://ub:6001/?depth=1
+    https://ub:6001/home?depth=1
+    https://ub:3000/static/media/file.54eb6ec9.png
+
+访问分为三种：
+1. get ui
+
+    GET https://res.eno.zone/
+    GET https://res.eno.zone/home
+
+2. get file
+
+    GET https://res.eno.zone/home/fans656/img/girl.jpg
+
+3. api
+
+    GET https://res.eno.zone/?op=ls
+    GET https://res.eno.zone/?op=meta
+    GET https://res.eno.zone/home/fans656/img/girl.jpg?op=meta
+
+    PUT https://res.eno.zone/home
+    POST https://res.eno.zone/home
+    DELETE https://res.eno.zone/home
+    (non-get requests defaults to api)
+
+4. static resource
+
+    GET https://res.eno.zone/static/js/bundle.js
+
+总结一下
+
+    if method == GET:
+        if path.startswith('static/'):
+            return <static-resource>
+        elif has_query(url):
+            return <api>
+        elif is_dir(path):
+            return <ui>
+        else:
+            return <file-content>
+    else:
+        return <api>
+============================================================= stome devlog end
+
+2018-06-19 00:14:22
+不知觉写了这一两个月，代码竟然已经到12000行了，，全部写完不知道要多少
+
+2018-06-19 01:03:19
+整理一下集成了stome之后的api
+所有stome相关的请求都在 /res/... 下面
+
+资源请求 GET /res/girl.jpg
+    curl类型的会直接从服务器取数据
+    browser的如果没注册service worker也会直接从服务器取
+    如果有service worker，会intercept所有 /res/... 的请求
+        先发meta query，如果有qiniu的存储，优先去qiniu取，前端unencrypt
+        如果没有qiniu，再从服务器取
+对于文件夹类型的请求 GET /res/img，服务器判断是文件夹后返回bundle.js，前端渲染UI，然后 GET /res/img?op=ls 拿meta
+其他api的请求都带着op参数或者method就能判断，比如
+    POST /res/SIRO-1690.wmv
+    DELETE /res/img/girl.jpg
+哦，文件上传，，
+    直接POST的话就是往服务器传，然后服务器可以负责向其他storage分发
+    前端发起的话，会先touch文件，然后根据meta决定是否自行上传qiniu——如果有server-local，就也往服务器传
+
+还有，下载的话如果文件没有server-local-storage，server会去qiniu取，cache下来，然后响应请求
+
+对智能终端的区分就是，
+    如果直接GET文件，说明是curl型的傻终端，只好服务器服务
+    如果先GET meta，说明有智能，之后终端自行去别地儿取也行，还是坚持向服务器GET文件也行
+应该加一个用户设置，优先去哪种storage取，，国内就可以设置成qiniu，国外就是vps——或者自动根据ip判断？

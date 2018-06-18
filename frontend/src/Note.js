@@ -13,7 +13,8 @@ import NoteFooter from './NoteFooter';
 import Gallery from './Gallery';
 import LeetcodeStatistics from './LeetcodeStatistics';
 //import { Icon } from './common';
-import { getNote } from './util';
+import { getNote, extractYamlText } from './util';
+import { render as renderEno } from './eno/parse';
 
 import 'highlightjs/styles/solarized-dark.css'
 
@@ -115,38 +116,6 @@ export default class Note extends Component {
     this.setState({note: note});
   }
 
-  render2() {
-    const note = this.state.note;
-    if (!note || !note.content) {
-      return null;
-    }
-    //this.parse(note);
-    //$(`.blog#${note.id} .pre-content`).append(this.preContent);
-    //$(`.blog#${note.id} .after-content`).append(this.afterContent);
-
-    //if (this.state.replaceAll) {
-    //  return this.state.replaceContent;
-    //}
-    const className = this.props.isSingleView ? 'single-blog-view' : ''
-    return (
-      <div className={'blog ' + className} id={note.id}>
-        <NoteTitle className="title" text={note.title}/>
-        <div className="pre-content"/>
-        {this.state.replaceContent ? this.state.replaceContent :
-            <ReactMarkdown className="blog-content" source={note.content}/>
-        }
-        <div className="after-content"/>
-        <NoteFooter
-          note={note}
-          visitor={this.props.visitor}
-          commentsVisible={this.props.commentsVisible || this.props.isSingleView}
-          isSingleView={this.props.isSingleView}
-          onChange={this.getNote}
-        />
-      </div>
-    );
-  }
-
   render() {
     const note = this.state.note;
     if (!note || !note.content) {
@@ -160,13 +129,23 @@ export default class Note extends Component {
     if (this.state.replaceAll) {
       return this.state.replaceContent;
     }
+
+    let contentComponent;
+    switch (note.type) {
+      case 'eno':
+        contentComponent = this.renderEno(note);
+        break;
+      default:
+        contentComponent = this.renderOld(note);
+        break;
+    }
     const className = this.props.isSingleView ? 'single-blog-view' : ''
 
     return (
       <div className={'blog ' + className} id={note.id}>
         <NoteTitle className="title" text={note.title}/>
         <div className="pre-content"/>
-        <ReactMarkdown className="blog-content" source={note.content}/>
+        {contentComponent}
         <div className="after-content"/>
         <NoteFooter
           note={note}
@@ -177,5 +156,17 @@ export default class Note extends Component {
         />
       </div>
     );
+  }
+
+  renderOld = (note) => {
+    return <ReactMarkdown className="blog-content" source={note.content}/>;
+  }
+
+  renderEno = (note) => {
+    let text = note.content;
+    let _;
+    [_, text] = extractYamlText(text);
+    const html = renderEno(text);
+    return <div dangerouslySetInnerHTML={{__html: html}}/>;
   }
 }

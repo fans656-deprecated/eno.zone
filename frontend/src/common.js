@@ -17,6 +17,23 @@ export const Icon = (props) => {
   return React.createElement(props.type, {...childProps, size: size});
 };
 
+export class Button extends Component {
+  render() {
+    const classes = ['eno-button'];
+    if (this.props.primary) {
+      classes.push('primary');
+    }
+    return (
+      <a
+        className={classes.join(' ')}
+        {...this.props}
+      >
+        {this.props.children}
+      </a>
+    )
+  }
+}
+
 export class DangerButton extends Component {
   constructor(props) {
     super(props);
@@ -38,12 +55,14 @@ export class DangerButton extends Component {
 
   render() {
     return (
-      <button
-        className={'eno-button danger-button ' + (this.state.clicked ? 'dangerous' : '')}
+      <a
+        className={
+          'eno-button danger-button ' + (this.state.clicked ? 'dangerous' : '')
+        }
         onClick={this.onClick}
       >
         {this.props.children}
-      </button>
+      </a>
     )
   }
 }

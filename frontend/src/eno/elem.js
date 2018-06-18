@@ -1,6 +1,8 @@
 import katex from 'katex'
 import 'katex/dist/katex.min.css'
 
+import './elem.css'
+
 import {makeInstance} from './parse_line'
 
 export class Elem {
@@ -74,7 +76,7 @@ export class Image extends Elem {
     attrs = Object.keys(attrs).map(key => {
       return `${key}="${attrs[key]}"`;
     });
-    return `<img ${attrs.join(' ')}>`;
+    return `<a href="${this.value}" target="_blank"><img ${attrs.join(' ')}></a>`;
   }
 }
 
@@ -98,8 +100,10 @@ export class InlineCode extends Elem {
 
 export class InlineFormula extends Elem {
   html = () => {
-    const str = katex.renderToString(this.value);
-    return `<code>${str}</code>`;
+    const str = katex.renderToString(this.value, {
+      displayMode: true,
+    });
+    return `<code class="formula">${str}</code>`;
   }
 }
 

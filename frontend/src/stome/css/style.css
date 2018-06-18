@@ -1,0 +1,101 @@
+:root {
+  --stome-bg-color: #21252B;
+  --stome-fg-color: #9DA5AB;
+  --stome-spacer-color: #333;
+}
+
+html, body, #root {
+  padding: 0;
+  margin: 0;
+}
+
+.stome {
+  font-size: .85em;
+  font-family: Consolas;
+  background: var(--stome-bg-color);
+  color: var(--stome-fg-color);
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.stome header {
+  background: var(--stome-bg-color);
+  color: var(--stome-fg-color);
+}
+
+.stome footer {
+  line-height: unset;
+}
+
+.stome a {
+  color: var(--stome-fg-color);
+  text-decoration: none;
+}
+
+.stome a:hover {
+  color: unset;
+}
+
+.stome .vertical {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.stome .horizontal {
+  display: flex;
+}
+
+.stome .bottom {
+  align-self: flex-start;
+}
+
+.stome .left-right {
+  display: flex;
+  justify-content: space-between;
+}
+
+.stome button {
+  border: 1px solid #555;
+  background: var(--stome-bg-color);
+  color: var(--stome-fg-color);
+  padding: .5em;
+  min-width: 5em;
+}
+
+.stome button:hover {
+  cursor: pointer;
+}
+
+.stome button:focus {
+  outline: none;
+}
+
+.stome button.icon {
+  border: none;
+  background: var(--stome-bg-color);
+  color: var(--stome-fg-color);
+  min-width: 0;
+}
+
+.stome .button-group {
+  padding: 0 0.2em;
+}
+
+.stome input {
+  background: #ddd;
+  outline: none;
+  border: none;
+  padding: .2em;
+  margin: .2em;
+  width: 22em;
+}
+
+.stome input.long {
+  min-width: 20em;
+}
+
+.stome pre, input {
+  font-family: Consolas;
+}

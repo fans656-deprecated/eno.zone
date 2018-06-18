@@ -1,0 +1,36 @@
+.stome .console {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+}
+
+.stome .console-icon {
+  position: absolute;
+  left: .5em;
+  top: .65em;
+  color: var(--stome-spacer-color);
+}
+
+.stome .console.focus .console-icon {
+  color: var(--stome-fg-color);
+}
+
+.stome .console input {
+  background: var(--stome-bg-color);
+  color: var(--stome-spacer-color);
+  height: 1.7em;
+  transition: .2s;
+  flex-grow: 1;
+  outline: none;
+  margin: 0;
+  padding: .4em 0 .2em 0;
+  text-indent: 2.2em;
+}
+
+.stome .console.focus input {
+  color: var(--stome-fg-color);
+}
+
+.stome .console input:focus {
+  background: #2A2E35;
+}

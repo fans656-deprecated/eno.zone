@@ -1,3 +1,5 @@
+import { NormalHandled } from './constants'
+
 export default class KeyMap {
   constructor(callback) {
     this.root = {};
@@ -35,7 +37,7 @@ export default class KeyMap {
       return true;
     } else if (this.defaultCallback) {
       const handled = this.defaultCallback(key);
-      if (handled != null) {
+      if (handled !== NormalHandled.Continue) {
         this.reset();
       } else {
         this.current = {};  // still use default next time

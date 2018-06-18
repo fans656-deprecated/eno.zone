@@ -1,0 +1,28 @@
+.tree {
+  margin: 0;
+  padding: 0;
+}
+
+.tree-node {
+  margin: 0;
+  padding: .1em 0;
+  display: flex;
+  align-items: center;
+}
+
+.tree-node:hover {
+  cursor: pointer;
+  background: #2B2E35;
+}
+
+.tree-node.active {
+  background: #31363F;
+}
+
+.tree-node-arrow {
+  padding: 0 .2em;
+}
+
+.tree-node-arrow:hover {
+  color: #3288E3;
+}
