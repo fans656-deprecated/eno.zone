@@ -11,8 +11,6 @@ import StomeApp from './stome/App';
 
 import './css/style.css'
 
-//registerServiceWorker();
-
 function newHandlerId(eventname) {
   return eventname + '-' + Date.now() + '-' + Math.random();
 }
@@ -50,6 +48,8 @@ $('html').on('keyup', (ev) => {
     handler(ev);
   }
 });
+
+registerServiceWorker();
 
 const visitor = getVisitor();
 const owner = getOwner();
