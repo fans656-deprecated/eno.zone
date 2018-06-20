@@ -1,6 +1,10 @@
-import qs from 'qs'
+import qs from 'qs';
 
-const api = {
+import { upload } from './uploader/upload';
+
+export const api = {
+  upload: upload,
+
   ls: async (path) => {
     return await api.request('GET', path + '?op=ls');
   },

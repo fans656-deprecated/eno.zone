@@ -59,6 +59,16 @@ globalScope.addEventListener('fetch', async (ev) => {
       const res = getResponse(meta, content);
       resolve(res);
     }));
+  } else {
+    const path = url.pathname.substring(conf.stomePrefix.length);
+    ev.respondWith(new Promise(async (resolve) => {
+      const meta = await getNodeMeta(path);
+      // TODO: don't download dir
+      const content = await getQiniuContent(meta);
+      console.log(meta, content);
+      const res = getResponse(meta, content);
+      resolve(res);
+    }));
   }
 });
 
@@ -143,4 +153,13 @@ function invertBytes(bytes) {
   for (let i = 0; i < bytes.length; ++i) {
     bytes[i] = ~bytes[i];
   }
+}
+
+async function getNodeMeta(path) {
+  const res = await fetch(conf.stomePrefix + path + '?op=meta');
+  return await res.json();
+}
+
+async function getQiniuContent(meta) {
+  return meta.contents.find(c => c.type === 'qiniu');
 }

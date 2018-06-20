@@ -222,6 +222,7 @@ def post_path(path=''):
         md5 = request.args['md5']
         mimetype = request.args['mimetype']
         node.create_as_file(size, md5, mimetype)
+        return node.meta
     elif op == 'mkdir':
         node.create_as_dir()
     #dst = get_dst_node(src, request.args.get('to'))

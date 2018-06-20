@@ -96,16 +96,37 @@ export class Preview extends React.Component {
   }
 }
 
-export const PreviewImage = ({elem}) => {
-  return (
-    <img src={elem.value} alt={elem.value}/>
-  );
+class PreviewImage extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      loaded: true,
+    };
+  }
+  
+  render = () => {
+    const elem = this.props.elem;
+    if (!this.state.loaded) {
+      console.log('img load failed');
+      return (
+        <p className="img">Failed to load image</p>
+      );
+    }
+    return (
+      <img
+        className="img"
+        src={elem.value}
+        alt={elem.value}
+        onLoad={() => this.setState({loaded: true})}
+        onError={() => this.setState({loaded: false})}
+      />
+    );
+  }
 }
 
-export const PreviewFormula = ({elem}) => {
-  console.log(elem.value);
+const PreviewFormula = ({elem}) => {
   return (
-    <div className="formula">
+    <div className="formula preview">
       <BlockMath>{elem.value}</BlockMath>
     </div>
   );

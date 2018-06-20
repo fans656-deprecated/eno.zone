@@ -1,25 +1,24 @@
-import React from 'react'
-import $ from 'jquery'
-import _ from 'lodash'
-import clone from 'clone'
+import React from 'react';
+import $ from 'jquery';
+import _ from 'lodash';
+import clone from 'clone';
 
-import './edi.css'
+import './edi.css';
 
-import vimrc from './vimrc'
-import History from './history'
+import vimrc from './vimrc';
+import History from './history';
 import {
   Mode, NormalOperation, NormalOperand, NormalHandled,
-} from './constants'
+} from './constants';
 import {
   Editor, Content, Lines, Caret, Input, CommandBar,
   Preview,
-} from './components'
+} from './components';
 import {
   insertTextAt, searchAll, isDigit, getWord,
-} from './utils'
-import { parseElems } from '../eno/parse_line'
-
-//import { lines } from './tmp'
+} from './utils';
+import { parseElems } from '../eno/parse_line';
+import { api as stomeAPI } from '../stome/api';
 
 export default class Edi extends React.Component {
   constructor(props) {
@@ -218,9 +217,11 @@ export default class Edi extends React.Component {
       const item = items[i];
       if (item.kind === 'file' && item.type.startsWith('image/')) {
         const file = item.getAsFile();
-        // process file
-        console.log(file);
-        this.insertText(this.row(), this.col(), '[screenshot.png]');
+        const fname = 'screenshot-test.png';
+        stomeAPI.upload(`/${fname}`, file, {
+          overwrite: true,
+        });
+        this.insertText(this.row(), this.col(), `[/res/${fname}]`);
       }
     }
   }

@@ -2,29 +2,36 @@ import React from 'react';
 
 const todo = `\
 Edi
-  paste image (ctrl-shift-v?)
-  upload (;u)
-  insert timestamp (;d)
-  scroll without change cursor (<c-j> <c-k>)
-  preview all (;v)
-
+  paste image
+    upload to specific dir (/note-imgs/20180620231957-1251.png)
+    upload progress
+    stome user home dir
+    make stome show uploaded file
   yy
   C
   D
   di' da' (single quote / double quote / back tick)
   ciw caw cw
   yiw yaw yw
-  search (highlight)
-  find character
-    f F \
-  macro (qq)
+  change until char (ct<)
+  delete until char (dt<)
   normal cmd
     J
-  tab (ctrl-i)
   vim selection mode
     v - visual
     V - visual line
     ctrl-v - visual block
+
+  upload (;u)
+  insert timestamp (;d)
+  scroll without change cursor (<c-j> <c-k>)
+  preview all (;v)
+
+  search (highlight)
+  find character
+    f F \
+  macro (qq)
+  tab (ctrl-i)
   indent/unindent
     >> <<
   ctrl-j (newline without break current)
@@ -34,9 +41,16 @@ Edi
     lineNode.html() overwrite previous highlight
   bug: searched word under caret is not highlighted
   bug: backspace/delete history
+  bug: ctrl-x
+  bug: ctrl-v multiple lines
+  bug: mouse selection hover out
+  bug: unloaded in preview image
 
 Eno
   bug: code block at last line
+
+stome
+  sized image
 
 Move all files to stome
   files/...

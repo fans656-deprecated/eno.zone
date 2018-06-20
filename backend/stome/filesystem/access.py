@@ -1,7 +1,7 @@
 import os
 
 from .. import util
-from ..error import Error, PermissionDenied, Conflict
+from ..error import Error, PermissionDenied, Conflict, NotFound
 from .node import get_node_by_path, make_node_by_meta, Node
 
 
