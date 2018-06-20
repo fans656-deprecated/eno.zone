@@ -1,4 +1,5 @@
-const origin = window.location.origin;
+//eslint-disable-next-line
+const origin = self.location.origin;;
 
 const conf = {
   owner: 'fans656',
@@ -9,7 +10,7 @@ const conf = {
       {name: 'TODO', url: '/todo'},
       {name: 'Home', url: '/'},
     ]
-  }
+  },
 };
 
 export default conf;

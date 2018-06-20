@@ -132,15 +132,9 @@ class Explorer extends React.Component {
     await sendMessage({
       op: 'add-download-config',
       meta: node.meta,
-      origin: conf.origin,
     });
 
-    //const img = $(`<img src="${node.meta.path}">`);
-    //$('body').append(img);
-
-    //fetch(node.meta.path);
-
-    openTab(node.meta.path);
+    openTab(conf.stomePrefix + node.meta.path);
   }
 
   openFileSelection = (path) => {

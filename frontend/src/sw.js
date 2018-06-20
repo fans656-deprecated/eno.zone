@@ -1,6 +1,13 @@
+import qs from 'query-string';
+
+import conf from './stome/conf';
+
 //eslint-disable-next-line
 const globalScope = self;
 const location = globalScope.location;
+const origin = location.origin;
+
+const urlToDownloadConfig = {};
 
 globalScope.addEventListener('install', (ev) => {
   ev.waitUntil(globalScope.skipWaiting());
@@ -11,16 +18,10 @@ globalScope.addEventListener('activate', (ev) => {
 });
 
 globalScope.addEventListener('message', (ev) => {
-  console.log('message', ev);
-  const msg = ev.data;
-  const op = msg.op;
+  const message = ev.data;
+  const op = message.op;
   if (op === 'add-download-config') {
-    //const meta = msg.meta;
-    //const urlAndConfig = getClientDownloadConfig(meta, msg.origin);
-    //if (urlAndConfig) {
-    //  const {url, config} = urlAndConfig;
-    //  url2config[url] = config;
-    //}
+    addDownloadConfig(message);
   }
   const port = ev.ports[0];
   if (port) {
@@ -30,37 +31,116 @@ globalScope.addEventListener('message', (ev) => {
 
 globalScope.addEventListener('fetch', async (ev) => {
   const request = ev.request;
+  const method = request.method;
+  if (method !== 'GET') {
+    // only handle request like GET /res/img/girl.jpg?width=32
+    return;
+  }
   const url = new URL(request.url);
-  let intercept = true;
   if (url.host !== location.host) {
-    intercept = false;
-  } else if (!url.pathname.startsWith('/res/')) {
-    intercept = false;
+    // only handle same host
+    return;
+  } else if (!url.pathname.startsWith(conf.stomePrefixWithSlash)) {
+    // only handle path starts with '/res/'
+    // this leave '/res' to stome UI
+    return;
   }
-  if (intercept) {
-    console.log('intercept', url);
+  const params = qs.parse(url.search.substring(1));
+  if ('op' in params) {
+    // leave request like /res/img?op=ls
+    return;
   }
-  //if (maybeFileDownload(request)) {
-  //  const method = request.method;
-  //  const url = request.url;
-  //  console.log('sw: ' + method + ' ' + url);
-  //  let url = decodeURI(request.url);
-  //  ev.respondWith(new Promise(async (resolve) => {
-  //    let res = null;
-  //    if (url in url2config) {
-  //      const {meta, content} = url2config[url];
-  //      res = getResponse(meta, content);
-  //    } else {
-  //      const path = getNodePath(url);
-  //      try {
-  //        res = await getResponseByPath(path);
-  //      } catch (e) {
-  //        res = fetch(url, {
-  //          headers: {'X-Pass-Through-Service-Worker': true}
-  //        });
-  //      }
-  //    }
-  //    resolve(res);
-  //  }));
-  //}
+  const downloadConfig = urlToDownloadConfig[url];
+  if (downloadConfig) {
+    console.log('downloadConfig', downloadConfig);
+    const {meta, content} = downloadConfig;
+    console.log(meta, content);
+    ev.respondWith(new Promise(async (resolve) => {
+      const res = getResponse(meta, content);
+      resolve(res);
+    }));
+  }
 });
+
+function addDownloadConfig(message) {
+  const meta = message.meta;
+  const config = getClientDownloadConfig(meta);
+  if (config) {
+    urlToDownloadConfig[config.url] = config;
+  }
+}
+
+function getClientDownloadConfig(meta) {
+  const content = meta.contents.find(
+    c => c.type === 'qiniu' && c.status === 'done'
+  );
+  if (content) {
+    return {
+        url: encodeURI(origin + conf.stomePrefix + meta.path),
+        meta: meta,
+        content: content,
+    };
+  }
+}
+
+function getResponse(meta, content) {
+  return new Response(getStream(content), {
+    headers: {
+      'Content-Type': meta.mimetype,
+      'Content-Length': meta.size,
+    }
+  });
+}
+
+function getStream(content) {
+  const stream = new ReadableStream({
+    start: async (controller) => {
+      for (let chunk of content.chunks) {
+        const url = await getDownloadUrl(content, chunk);
+        await enqueueChunkData(controller, url);
+      }
+      controller.close();
+    }
+  });
+  return stream;
+}
+
+async function getDownloadUrl(content, chunk) {
+  const headers = makeFetchHeaders();
+  const res = await fetch(
+    conf.stomePrefix + '/?op=content-query', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({
+        op: 'get-download-url',
+        md5: content.md5,
+        storage_id: content.storage_id,
+        path: chunk.path,
+      })
+    }
+  );
+  return (await res.json()).url;
+}
+
+async function enqueueChunkData(controller, url) {
+  const res = await fetch(url);
+  const reader = res.body.getReader();
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    invertBytes(value);
+    controller.enqueue(value);
+  }
+}
+
+function makeFetchHeaders() {
+  const headers = new Headers();
+  headers.append('Content-Type', 'application/json');
+  return headers;
+}
+
+function invertBytes(bytes) {
+  for (let i = 0; i < bytes.length; ++i) {
+    bytes[i] = ~bytes[i];
+  }
+}
