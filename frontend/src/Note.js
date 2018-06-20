@@ -164,8 +164,7 @@ export default class Note extends Component {
 
   renderEno = (note) => {
     let text = note.content;
-    let _;
-    [_, text] = extractYamlText(text);
+    ({text} = extractYamlText(text));
     const html = renderEno(text);
     return <div dangerouslySetInnerHTML={{__html: html}}/>;
   }

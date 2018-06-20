@@ -87,9 +87,8 @@ class EditNote extends React.Component {
   onSave = async (text) => {
     let note = this.state.note;
     note.content = text;
-    const [yamltext, _] = extractYamlText(text);
+    const {yamltext} = extractYamlText(text);
     if (yamltext) {
-      console.log(yamltext);
       try {
         const notemeta = yaml.safeLoad(yamltext);
         const meta = parseNoteMeta(notemeta);

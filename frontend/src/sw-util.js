@@ -1,50 +1,5 @@
-const api_origin = 'https://ub:6001';
-
-const url2config = {};
-
-self.addEventListener('install', (ev) => {
-  self.skipWaiting();
-});
-
-self.addEventListener('message', (ev) => {
-  const msg = ev.data;
-  const op = msg.op;
-  if (op === 'add-download-config') {
-    const meta = msg.meta;
-    const urlAndConfig = getClientDownloadConfig(meta, msg.origin);
-    if (urlAndConfig) {
-      const {url, config} = urlAndConfig;
-      url2config[url] = config;
-    }
-  }
-  ev.ports[0].postMessage(true);
-});
-
-self.addEventListener('fetch', async (ev) => {
-  const request = ev.request;
-  if (maybeFileDownload(request)) {
-    let url = decodeURI(request.url);
-    ev.respondWith(new Promise(async (resolve) => {
-      let res = null;
-      if (url in url2config) {
-        const {meta, content} = url2config[url];
-        res = getResponse(meta, content);
-      } else {
-        const path = getNodePath(url);
-        try {
-          res = await getResponseByPath(path);
-        } catch (e) {
-          res = fetch(url, {
-            headers: {'X-Pass-Through-Service-Worker': true}
-          });
-        }
-      }
-      resolve(res);
-    }));
-  }
-});
-
-function maybeFileDownload(request) {
+export function maybeFileDownload(request) {
+  return true;
   if (request.headers.hasOwnProperty('X-Pass-Through-Service-Worker')) {
     return false;
   }
@@ -56,7 +11,7 @@ function maybeFileDownload(request) {
   return true;
 }
 
-function getClientDownloadConfig(meta, origin) {
+export function getClientDownloadConfig(meta, origin) {
   const content = meta.contents.find(
     c => c.type === 'qiniu' && c.status === 'done'
   );
@@ -68,13 +23,13 @@ function getClientDownloadConfig(meta, origin) {
   }
 }
 
-async function getResponseByPath(path) {
+export async function getResponseByPath(path) {
   const meta = await getNodeMeta(path);
   const content = await getQiniuContent(meta);
   return getResponse(meta, content);
 }
 
-function getResponse(meta, content) {
+export function getResponse(meta, content) {
   return new Response(getStream(content), {
     headers: {
       'Content-Type': meta.mimetype,
@@ -83,20 +38,20 @@ function getResponse(meta, content) {
   });
 }
 
-function getNodePath(url) {
+export function getNodePath(url) {
   return '/' + url.split('/').slice(3).join('/').split('?')[0];
 }
 
-async function getNodeMeta(path) {
+export async function getNodeMeta(path) {
   const res = await fetch(api_origin + path + '?op=meta');
   return await res.json();
 }
 
-async function getQiniuContent(meta) {
+export async function getQiniuContent(meta) {
   return meta.contents.find(c => c.type === 'qiniu');
 }
 
-function getStream(content) {
+export function getStream(content) {
   const stream = new ReadableStream({
     start: async (controller) => {
       for (let chunk of content.chunks) {
@@ -109,7 +64,7 @@ function getStream(content) {
   return stream;
 }
 
-async function getDownloadUrl(content, chunk) {
+export async function getDownloadUrl(content, chunk) {
   const headers = makeFetchHeaders();
   const res = await fetch(
     api_origin + '/?op=content-query', {
@@ -126,7 +81,7 @@ async function getDownloadUrl(content, chunk) {
   return (await res.json()).url;
 }
 
-async function enqueueChunkData(controller, url) {
+export async function enqueueChunkData(controller, url) {
   const res = await fetch(url);
   const reader = res.body.getReader();
   while (true) {
@@ -137,13 +92,13 @@ async function enqueueChunkData(controller, url) {
   }
 }
 
-function makeFetchHeaders() {
+export function makeFetchHeaders() {
   const headers = new Headers();
   headers.append('Content-Type', 'application/json');
   return headers;
 }
 
-function invertBytes(bytes) {
+export function invertBytes(bytes) {
   for (let i = 0; i < bytes.length; ++i) {
     bytes[i] = ~bytes[i];
   }

@@ -148,8 +148,14 @@ export function extractYamlText(text) {
       // has meta yaml
       const yamltext = text.substring(1, end);
       text = text.substring(1 + yamltext.length + 2);
-      return [yamltext, text];
+      return {
+        yamltext: yamltext,
+        text: text,
+      };
     }
   }
-  return [null, text];
+  return {
+    yamltext: null,
+    text: text,
+  };
 }

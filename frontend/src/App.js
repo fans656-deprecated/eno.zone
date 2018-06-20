@@ -32,9 +32,13 @@ class App extends React.Component {
     const owner = this.props.owner;
     const pathname = window.location.pathname;
     if (pathname.startsWith(RES_PREFIX_SLASH) || pathname === RES_PREFIX) {
+      let path = pathname.substring(RES_PREFIX_LEN);
+      if (path.length === 0) {
+        path = '/';
+      }
       return <Explorer
         rootPath={'/'}
-        currentPath={pathname.substring(RES_PREFIX_LEN)}
+        currentPath={path}
       />;
     }
     return (

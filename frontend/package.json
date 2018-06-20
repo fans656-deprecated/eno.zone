@@ -27,11 +27,13 @@
     "react-router-dom": "^4.2.2"
   },
   "devDependencies": {
-    "react-scripts": "1.0.7"
+    "react-scripts": "^1.1.4",
+    "react-scripts-webpack-config-editor": "^1.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "install": "react-scripts-webpack-config-editor webpack-transform.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },

@@ -1,12 +1,5 @@
 import qs from 'qs'
 
-import conf from './conf'
-
-const parts = conf.origin.split(':');
-if (parts.length > 2) parts.pop();
-parts.push('' + conf.api_port);
-const api_origin = parts.join(':');
-
 const api = {
   ls: async (path) => {
     return await api.request('GET', path + '?op=ls');

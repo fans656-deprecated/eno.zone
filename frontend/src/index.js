@@ -7,7 +7,6 @@ import { getVisitor, getOwner } from './util';
 import { registerServiceWorker } from './stome/serviceworker'
 
 import App from './App';
-import StomeApp from './stome/App';
 
 import './css/style.css'
 
