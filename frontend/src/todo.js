@@ -2,11 +2,6 @@ import React from 'react';
 
 const todo = `\
 Edi
-  paste image
-    upload to specific dir (/note-imgs/20180620231957-1251.png)
-    upload progress
-    stome user home dir
-    make stome show uploaded file
   yy
   C
   D
@@ -21,6 +16,11 @@ Edi
     v - visual
     V - visual line
     ctrl-v - visual block
+  paste image
+    upload to specific dir (/note-imgs/20180620231957-1251.png)
+    upload progress
+    stome user home dir
+    make stome show uploaded file
 
   upload (;u)
   insert timestamp (;d)

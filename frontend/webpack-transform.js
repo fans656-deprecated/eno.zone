@@ -5,6 +5,7 @@ const config = {
   entry: {
     bundle: './src/index.js',
     sw: './src/sw.js',
+    // TODO: require.resolve('react-dev-utils/webpackHotDevClient'),
   },
   output: {
     // must be at "/" so service worker postMessage will work

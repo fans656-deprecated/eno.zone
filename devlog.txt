@@ -567,3 +567,175 @@ anyway, 总是解决了，，以后是不是真的可用再说吧，测试域名
 
 现在整个项目分成了几大块儿，eno.zone一个，stome一个，edi一个，，相互还算独立
 多会儿能写完呢？感觉六月还是不行~~~
+
+2018-06-21 19:53:44
+edi这么写下去感觉会很乱，有必要整理一下vim的各种操作的细节，然后实现一些基础功能，从一开始就支持history之类
+然后用起来会顺手得多，也不会实现业务的过程中引入那么多bug
+
+毕竟.. 目前一个 edi.js 已经1400行了呃，，这不是好兆头
+
+2018-06-21 23:27:16
+既然要重构(写)，不禁想要不要尝试一下富文本呢？
+
+可以有图片、公式、代码、音乐、视频，以及自定义的控件(html+js)
+这样能做好的话，比如之后的记账，也可以做成控件，然后vim操作
+
+2018-06-21 23:59:23
+上面说的富文本自定义控件的case，想到一个可以用作prototype的：
+在文本里嵌入一个推箱子的控件，hljk移动到上面时，可以i键激活，然后hljk控制小人移动，<c-k> deactivate，继续hljk去别的text
+哎，推箱子好像难了点，贪吃蛇怎么样？
+
+哦对，今天要干的还是先不写代码，把各种操作都仔细描述一下，看看有什么遗漏的细节
+
+另一个use case是移动或click上去可以直接激活的控件
+
+2018-06-22 07:46:02
+
+::: edi design :::
+
+Navigation - prefix with <count>
+    h       Caret left
+    l       Caret right
+    k       Caret up
+    j       Caret down
+    w       Word right
+    e       Word end right
+    b       Word left
+    H       Caret head
+    L       Caret tail
+
+    M       Go to match paren/bracket/quote/...
+    
+    zz      Put current line center
+    zt      Put current line top
+    zb      Put current line bottom
+            
+    ------- will not push position marks
+
+    gg      Go to first line
+    G       Go to last line
+
+    ------- will not push position marks
+
+    <c-o>   Jump back
+    <c-i>   Jump forward
+
+
+Modification - prefix with <count>
+    ~       Change case
+    <c-a>   Increment
+    <c-x>   Decrement
+    x       Delete char
+    J       Join with next line
+
+d-/c-/y-
+    <count> h/l/j/k/w/b/e/gg/G
+    i-/a-
+        w/(/[/{/'/"/`
+
+    dd  Delete line
+    D   Delete line after
+    cc  Change line
+    C   Change line after
+
+Prefix type
+    <count>         23
+    <register>      "a
+
+History
+    change history - only content change
+    action history - all actions
+    
+    note normal insert mode history is more fine-grained
+
+Macro
+    record key strokes
+
+Highlight
+
+Block Visual Insert
+
+Search
+
+Replace
+
+Custom command
+    normal
+    insert
+    command
+
+Line wrap
+    no wrap
+    wrap with jk on soft line
+
+Custom applet
+    auto activate on navigate / click
+        horz elems count into out horz elems
+        vert elems does not count (if out has horz elems?)
+        line number?
+    i to activate
+    <esc> to force deactivate
+
+Line number
+
+Status bar
+
+Read only mode
+
+Usage in comment edit
+
+Auto richable elements
+    *italic*
+    **strong**
+    `inline-code`
+    ``inline-formula``
+    
+    auto detected block code?
+
+Manual richable elements
+    
+    # py
+    def run():
+        return 'runned'
+
+    // c
+    void main() {
+        printf("hello world\n");
+    }
+    
+    // cpp
+    void main() {
+        cout << "hi" << endl;
+    }
+    
+    // js
+    void main() {
+        cout << "hi" << endl;
+    }
+
+Toolbar
+
+Placeholder (for comment edit)
+
+==================================================================
+
+Surface
+    caret
+    text
+    history
+    selection
+    positions
+
+==================================================================
+
+Key state machine
+
+==================================================================
+
+h
+    row, col => row, max(0, col - 1)
+
+::: edi designend :::
+
+2018-06-22 08:25:35
+看样子，要不先做出insert mode的rich editor？是为了让别人也能用eno.zone

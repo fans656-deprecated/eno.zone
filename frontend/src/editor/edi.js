@@ -41,6 +41,7 @@ export default class Edi extends React.Component {
     this.caretWhenEnterInputMode = null;
     this.takenInputValues = [];  
     this.inputModeChanges = [];
+    this.visualCarets = {};
 
     this.resetNormalCmd();
     window.e = this;
@@ -107,15 +108,30 @@ export default class Edi extends React.Component {
 
   line = (row) => {
     row = row == null ? this.row() : row;
-    return this.lines()[row];
+    const lines = this.lines();
+    row = Math.max(0, Math.min(row, lines.length - 1));
+    return lines[row];
   }
 
   lines = () => {
     return this.state._lines;
   }
 
-  text = () => {
-    return this.lines().join('\n');
+  text = (begRow, begCol, endRow, endCol) => {
+    const lines = this.lines();
+    if (begRow == null) {
+      return lines.join('\n');
+    }
+    begRow = begRow == null ? 0 : begRow;
+    begCol = begCol == null ? 0 : begCol;
+    endRow = endRow == null ? lines.length : endRow;
+    endCol = endCol == null ? this.line(endRow - 1).length : endCol;
+    if (begRow === endRow - 1) {
+      return this.textInLine(begRow, begCol, endCol);
+    }
+    const pre = this.textInLine(begRow, begCol, this.line(begRow).length);
+    const aft = this.textInLine(endRow - 1, 0, endCol);
+    return pre + lines.slice(1, lines.length - 2).join('\n') + aft;
   }
 
   textInLine = (row, beg, end) => {
@@ -198,8 +214,10 @@ export default class Edi extends React.Component {
     if (this._isDummyLine(row)) {
       col = 0;
     }
-    await this._setCaret(row, col);
+    [row, col] = await this._setCaret(row, col);
     this._updateCaret(row, col);
+    this._mayUpdateVisualCaret(row, col);
+    return [row, col];
   }
 
   selectAll = () => {
@@ -208,6 +226,58 @@ export default class Edi extends React.Component {
     range.selectNodeContents(this.linesDiv);
     selection.removeAllRanges();
     selection.addRange(range);
+  }
+
+  visualSelect = (begRow, begCol, endRow, endCol, initial) => {
+    this.visualCarets.begRow = begRow;
+    this.visualCarets.begCol = begCol;
+    this.visualCarets.endRow = endRow;
+    this.visualCarets.endCol = endCol;
+    if (initial) {
+      this.visualCarets.anchorRow = begRow;
+      this.visualCarets.anchorCol = begCol;
+    }
+    this.clearHighlights();  // to ease selection
+    const range = document.createRange();
+    for (let row = begRow; row < endRow; ++row) {
+      const line = this.line(row);
+      const lineNode = this._getLineNode(row, this.linesDiv).get(0);
+      const textNode = lineNode.firstChild;
+      if (textNode.nodeType != Node.TEXT_NODE) {
+        console.log(`warning: ${textNode} is not text node`);
+        continue;
+      }
+      const begLineCol = row === begRow ? begCol : 0;
+      const endLineCol = row === endRow - 1 ? endCol : line.length;
+      range.setStart(textNode, begLineCol);
+      range.setEnd(textNode, endLineCol);
+      range.surroundContents($('<span class="highlight visual">').get(0));
+    }
+  }
+
+  visualClear = () => {
+    this.clearHighlights();
+  }
+
+  _mayUpdateVisualCaret = (row, col) => {
+    if (this.state.mode === Mode.Visual) {
+      this._updateVisualCaret(row, col);
+    }
+  }
+
+  _updateVisualCaret = (row, col) => {
+    const {anchorRow, anchorCol} = this.visualCarets;
+    let before = false;
+    if (row < anchorRow) {
+      before = true;
+    } else if (row === anchorRow && col <= anchorCol) {
+      before = true;
+    }
+    if (before) {
+      this.visualSelect(row, col, anchorRow + 1, anchorCol + 1);
+    } else {
+      this.visualSelect(anchorRow, anchorCol, row + 1, col + 1);
+    }
   }
 
   onPaste = (ev) => {
@@ -259,6 +329,10 @@ export default class Edi extends React.Component {
       case Mode.Input:
         this._prepareNewInputModeChange();
         await this._pushInputModeHistory();
+        await this.switchToNormalMode();
+        break;
+      case Mode.Visual:
+        this.visualClear();
         await this.switchToNormalMode();
         break;
       case Mode.Command:
@@ -366,6 +440,18 @@ export default class Edi extends React.Component {
     await this._setCaret(row, col);
   }
 
+  doToggleVisual = async () => {
+    this.toggleVisualMode();
+  }
+
+  doToggleLineVisual = async () => {
+    console.log('doLineVisual');
+  }
+
+  doToggleBlockVisual = async () => {
+    console.log('doBlockVisual');
+  }
+
   doDeleteLine = async () => {
     const row = this.row();
     const line = this.line();
@@ -428,6 +514,18 @@ export default class Edi extends React.Component {
       redo: async () => {
         await this.deleteTextInLine(row, begCol, endCol);
       }
+    });
+  }
+
+  doDeleteText = async (begRow, begCol, endRow, endCol) => {
+    const text = this.text(begRow, begCol, endRow, endCol);
+    await this.history.push({
+      redo: async () => {
+        await this.deleteText(begRow, begCol, endRow, endCol);
+      },
+      undo: async () => {
+        this.insertText(begRow, begCol, text);
+      },
     });
   }
 
@@ -633,6 +731,33 @@ export default class Edi extends React.Component {
       default:
         this.resetNormalCmd();
         return true;
+    }
+  }
+
+  feedVisualCommand = (key) => {
+    switch (key) {
+      case 'x':
+      case 'd':
+        console.log('visual delete');
+        const {begRow, begCol, endRow, endCol} = this.visualCarets;
+        this.doDeleteText(begRow, begCol, endRow, endCol);
+        this.switchToNormalMode();
+        return true;
+      case 'c':
+        console.log('visual change');
+        this.switchToInputMode();
+        return true;
+      case 'y':
+        console.log('visual yank');
+        this.switchToNormalMode();
+        return true;
+      default:
+        if (isDigit(key)) {
+          this.normalCmd.digits.push(key);
+          return true;
+        } else {
+          return this._changeNormalCmdType(key);
+        }
     }
   }
 
@@ -903,6 +1028,22 @@ export default class Edi extends React.Component {
       mode: Mode.Command,
     });
     this.contentDiv.scrollLeft = 0;
+  }
+
+  toggleVisualMode = async () => {
+    if (this.state.mode === Mode.Visual) {
+      await this.switchToNormalMode();
+      this.visualClear();
+    } else {
+      await this.switchToVisualMode();
+    }
+  }
+
+  switchToVisualMode = async () => {
+    await this._update({mode: Mode.Visual});
+    const [row, col] = this.caret();
+    this.visualSelect(row, col, row + 1, col + 1, true);
+    console.log('switchToVisualMode');
   }
 
   escapeFromCommandMode = async () => {
@@ -1249,6 +1390,11 @@ export default class Edi extends React.Component {
     let offset;
     for (let child of lineNode.childNodes) {
       const text = $(child).text();
+      if (text.length === 0) {
+        // when highlight on line beginning, the first text node will contain ''
+        // we should go on to the first span instead
+        continue;
+      }
       const end = beg + text.length;
       if (beg <= col && col <= end) {
         if (child.nodeType !== Node.TEXT_NODE) {
@@ -1297,6 +1443,7 @@ export default class Edi extends React.Component {
       _col: col,
       previewElem: null,
     });
+    return [row, col];
   }
 
   _getCurrentCommand = () => {

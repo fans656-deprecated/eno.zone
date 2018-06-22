@@ -113,6 +113,10 @@
   background: #FF9632;
 }
 
+.editor .highlight.visual {
+  background: #3390FF;
+}
+
 @keyframes "blink" {
   from, to {
     visibility: visible;

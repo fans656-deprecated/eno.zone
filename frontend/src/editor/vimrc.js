@@ -2,6 +2,26 @@ import { Mode } from './constants'
 import KeyMap from './keymap'
 
 function install(editor) {
+  // visual
+  const visual = new KeyMap();
+
+  visual.add('v', editor.toggleVisualMode);
+  visual.add('h', editor.caretLeft);
+  visual.add('l', editor.caretRight);
+  visual.add('j', editor.caretDown);
+  visual.add('k', editor.caretUp);
+
+  visual.add('w', editor.wordRight);
+  visual.add('b', editor.wordLeft);
+  visual.add('e', editor.wordTail);
+
+  visual.add('H', editor.caretHead);
+  visual.add('L', editor.caretTail);
+
+  visual.add('<c-k>', editor.escape);
+
+  visual.add('', editor.feedVisualCommand);
+
   const normal = new KeyMap();
 
   // navigation
@@ -36,6 +56,11 @@ function install(editor) {
   // history
   normal.add('u', editor.undo);
   normal.add('<c-r>', editor.redo);
+
+  // visual
+  normal.add('v', editor.doToggleVisual);
+  normal.add('V', editor.doToggleLineVisual);
+  normal.add('<c-v>', editor.doToggleBlockVisual);
 
   // misc
   normal.add('/', editor.searchToCommandMode);
@@ -78,6 +103,7 @@ function install(editor) {
     [Mode.Normal]: normal,
     [Mode.Input]: input,
     [Mode.Command]: command,
+    [Mode.Visual]: visual,
   }
 }
 
