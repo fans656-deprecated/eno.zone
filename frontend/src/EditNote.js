@@ -4,7 +4,8 @@ import { withRouter } from 'react-router-dom';
 import qs from 'query-string';
 import yaml from 'js-yaml';
 
-import Edi from './editor/edi';
+//import Edi from './editor/edi';
+import Edi from './editor/new/edi';
 import { Button, DangerButton } from './common';
 import {
   getNote, putNote, postNote, deleteNote, parseNoteMeta,
@@ -20,7 +21,6 @@ class EditNote extends React.Component {
     this.state = {
       note: null,
       editingMeta: false,
-      previewing: false,
     };
   }
 
@@ -53,16 +53,15 @@ class EditNote extends React.Component {
         className="edit-blog"
         onKeyUp={this.onKeyUp}
       >
-        <Edi
+        {true ? null : <Edi
           ref={ref => this.edi = ref}
           content={this.state.note.content}
           onSave={this.onSave}
           onQuit={this.onQuit}
           onSaveAndQuit={this.onSaveAndQuit}
           onUpload={this.onUpload}
-          onPreview={this.onPreview}
-        />
-        {this.state.previewing && null}
+        />}
+        <Edi className="note"/>
         <div className="buttons horizontal">
           <div className="left">
           </div>
@@ -123,10 +122,6 @@ class EditNote extends React.Component {
 
   onUpload = () => {
     this.fileInput.click();
-  }
-
-  onPreview = () => {
-    this.setState({previewing: !this.state.previewing});
   }
 
   onKeyUp = (ev) => {

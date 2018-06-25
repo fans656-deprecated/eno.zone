@@ -1,0 +1,96 @@
+.edi {
+  font-family: Consolas;
+  border: 1px solid #ddd;
+  position: relative;
+}
+
+.edi .view.content {
+  position: relative;
+}
+
+.edi.focused {
+  outline: 1px solid -webkit-focus-ring-color;
+}
+
+.edi.focused.recording {
+  outline: 2px solid #DBA800;
+}
+
+.edi .view {
+  overflow-y: hidden;
+}
+
+.edi .text {
+  height: 100%;
+}
+
+.edi .view.command {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  line-height: 1.5em;
+  background: white;
+  border-top: 1px solid #eee;
+  opacity: .9;
+  display: none;
+}
+
+.edi .view.command .text {
+  padding: .2em;
+}
+
+.edi .view.command.active {
+  display: block;
+}
+
+.edi .view.content {
+  height: 100%;
+}
+
+.edi .view.content .text {
+  padding: .4em;
+}
+
+.edi .view .text {
+  white-space: pre-wrap;
+}
+
+.edi .view .text .line {
+  line-height: 1.4;
+}
+
+.edi .view .text .line .highlight {
+  background: #FF9632;
+}
+
+.edi .caret {
+  display: none;
+  position: absolute;
+  height: 1.2em;
+  background: black;
+}
+
+.edi .caret.blink {
+  animation: 1s blink step-end infinite;
+}
+
+.edi .caret.block {
+  background: steelblue;
+  opacity: .5;
+}
+
+.edi .input-element {
+  width: 1em;
+  position: absolute;
+  z-index: -999;
+}
+
+@keyframes "blink" {
+  from, to {
+    visibility: visible;
+  }
+  50% {
+    visibility: hidden;
+  }
+}

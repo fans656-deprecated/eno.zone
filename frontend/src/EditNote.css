@@ -16,6 +16,12 @@
   margin-left: 1em;
 }
 
+.note.edi {
+  height: 35em;
+  background: white;
+  font-size: .9em;
+}
+
 /*
 .edit-blog > * {
   box-sizing: border-box;

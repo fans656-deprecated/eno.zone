@@ -675,6 +675,7 @@ Custom applet
         line number?
     i to activate
     <esc> to force deactivate
+    read-only
 
 Line number
 
@@ -730,12 +731,238 @@ Surface
 
 Key state machine
 
+[<count>] <operation> [[<count>] <move> [<target>]]
+
+<operation>
+
+    d Deletion
+    D Line deletion
+
+    y Yank
+    Y Line yank
+    
+    c Change
+    C Line change
+    
+    p Paste
+    P Paste before
+    
+    a Append
+    A Append end
+    
+    i Insert
+    I Insert head
+    
+    o Insert next line
+    O Insert prev line
+
+    m Mark
+
+<move>
+    
+    h
+    l
+    j
+    k
+    w
+    e
+    b
+    H
+    L
+    gg
+    G
+    M
+    ' Goto mark
+
+<operation>
+    D
+    H
+    L
+
+[<count>] <operation>
+    G
+
+<operation> <target>
+    gg
+    yy
+    cc
+
+[<count>] <operation> [count] <move>
+    dw
+    yb
+
+[<count>] <operation> [count] <move-ext> [<target>]
+    diw
+    ci<
+    ya"
+
+[<count>]
+
 ==================================================================
 
-h
-    row, col => row, max(0, col - 1)
+History
+
+input change history
+
+    i/I/a/A
+        save caret
+        record input change
+        push history on escape
+    o/O
+        save caret
+        push line insert operation, squash=1
+        record input change
+        push history on escape and squash
+    s/S
+        save caret
+        push char deletion operation, squash=1
+        record input change
+        push history on escape and squash
+    cc/C
+        save caret
+        push change operation, squash=1
+        record input change
+        push history on escape and squash
+    cw/ca[/...
+        save caret
+        push change operation, squash=1
+        record input change
+        push history on escape and squash
+
+input change
+
+    {
+        caret: {row: 23, col: 15},
+        deleteBeforeCount: 'foo',
+        text: 'hello',
+        deleteAfterCount: 'bar',
+    }
+    
+    undo:
+
+normal change history
+
+    x
+
+==================================================================
 
 ::: edi designend :::
 
 2018-06-22 08:25:35
 看样子，要不先做出insert mode的rich editor？是为了让别人也能用eno.zone
+
+2018-06-22 09:33:31
+有一个use case强烈需要rich support：
+画图
+比如时序图、流程图
+总之是各种交互操作比直接编辑文字更容易的applets
+
+2018-06-24 11:59:29
+加上highlights和selection后，line需要一个intervals的structure
+
+    class Spans:
+        add(beg, end, data)
+        remove(beg, end)
+        get(beg, end)
+
+2018-06-24 17:54:02
+整理一下inserText和deleteText的操作
+
+input mode
+    normal chars (abcde...)
+        > [rows, cols] = insertText(row, col, 'a')
+        > caret.incRow(rows - 1).incCol(cols)
+    ime text
+        > [rows, cols] = insertText(row, col, '比如')
+        > caret.incRow(rows).incCol(cols)
+    paste text (ctrl-v)
+        > [rows, cols] = insertAfter(row, col, 'foo\nbar')
+        > caret.incRow(rows).incCol(cols)
+    enter
+        > insertLine(row + 1, line(row).leadingSpaces())
+        > caret.incRow(1).toLastCol()
+    backspace
+        not beginning
+            > deleteChar(row, col - 1)
+            > caret.decCol(1)
+        beginning
+            not first row
+                > caret.decRow(1).toLastCol()
+                > line(row).joinNext(1)
+            first row
+                > noop
+    delete
+        not end
+            > deleteChar(row, col)
+        end
+            not last row
+                > line(row).joinNext(1)
+            last row
+                > noop
+normal mode
+    o
+        > insertLine(row + 1, line(row).leadingSpaces())
+        > caret.incRow(1).toLastCol()
+    O
+        > insertLine(row, line(row).leadingSpaces())
+        > caret.toLastCol()
+    p
+        > [rows, cols] = insertAfter(row, col, text)
+        > if (rows === 1)
+            > caret.incCol(cols - 1)
+        > else
+            > caret.incRow(rows - 1).setCol(cols - 1)
+    P
+        > [rows, cols] = insertBefore(row, col, text)
+        > caret.decRow(rows - 1).
+
+2018-06-25 00:22:00
+content那部分又乱掉了，得好好想想
+
+Content
+
+    rows() => 4
+
+    firstRow() => 0
+
+    lastRow() => 3
+
+    line(row) => Line
+    
+    text(begRow, begCol, endRow, endCol) => 'foo\nbar'
+    
+    insertText(row, col, text) => addedRows, lastAddedCols
+    
+    insertLine(row, text)
+    
+    insertChar(row, col, ch)
+    
+    deleteText(begRow, begCol, endRow, endCol) => deletedText
+    
+    deleteLine(row) => deletedLine
+    
+    deleteChar(row, col) => deletedChar
+    
+    joinLines(row, count) => joinedLine
+    
+    setAttr(begRow, begCol, endRow, endCol)
+    
+    search(pattern)
+    
+    replace(pattern, func_or_string)
+    
+    replace(begRow, begCol, endRow, endCol, string)
+
+Line
+
+    text(beg, end)
+    
+    spans(beg, end)
+
+    insert(col, text)
+
+    del(beg, end)
+    
+    split(col)
+
+    setAttr(beg, end, attr)

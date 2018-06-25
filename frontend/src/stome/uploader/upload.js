@@ -46,15 +46,11 @@ class QiniuUpload {
 
   start = async () => {
     const {chunks} = await this.getUploadConfig();
-    let loaded = 0;
-    const onNewLoaded = (newLoaded) => {
-      loaded += newLoaded;
-    };
     for (let chunk of chunks) {
       chunk.loaded = 0;
       chunk.blob = await this.getEncryptedBlob(chunk);
       chunk.token = await this.getUploadToken(chunk);
-      await this.doUpload(chunk, onNewLoaded);
+      await this.doUpload(chunk);
     }
     this.finishUpload();
   }
