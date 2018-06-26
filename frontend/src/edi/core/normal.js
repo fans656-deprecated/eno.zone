@@ -51,6 +51,7 @@ export default class Normal {
         // falls through
       default:
         this.reset();
+        return Feed.Handled;
     }
   }
 

@@ -31,7 +31,7 @@ export default class Caret {
     this.row = this.normalizedRow(row);
     this.col = this.normalizedCol(this.hintCol);
     if (!noUpdate) {
-      this.update();
+      this.updateUI();
     }
     return this;
   }
@@ -40,7 +40,7 @@ export default class Caret {
     this.col = col = this.normalizedCol(col);
     this.hintCol = forceHint ? col : Math.max(col, this.hintCol);
     if (!noUpdate) {
-      this.update();
+      this.updateUI();
     }
     return this;
   }
@@ -49,8 +49,9 @@ export default class Caret {
     this.setRow(row, true);
     this.setCol(col, true, true);
     if (!noUpdate) {
-      this.update();
+      this.updateUI();
     }
+    return this;
   }
 
   incRow = (count, noUpdate) => this.changeRow(count, noUpdate)
@@ -60,10 +61,12 @@ export default class Caret {
 
   changeRow = (diff, noUpdate) => {
     this.setRow(this.row + diff, noUpdate);
+    return this;
   }
 
   changeCol = (diff, forceHint, noUpdate) => {
     this.setCol(this.col + diff, forceHint, noUpdate);
+    return this;
   }
 
   normalizedRow = (row) => {
@@ -76,27 +79,11 @@ export default class Caret {
     return Math.max(0, Math.min(maxCol, col));
   }
 
-  backspace = () => {
-    console.log('backspace');
-    if (this.col === 0 && this.row !== 0) {
-      this.decRow(1, true);
-      this.toLastCol();
-    } else {
-      const line = this.content.line(this.row);
-      line.deleteCols(this.col - 1, this.col);
-      --this.col;
-      this.update();
-    }
-  }
-
-  del = () => {
-  }
-
   _cols = () => {
     return this.content.line(this.row).cols();
   }
 
-  update = () => {
-    this.surface.editor.updateUI();
+  updateUI = () => {
+    this.surface.updateUI();
   }
 }

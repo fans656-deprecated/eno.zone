@@ -44,9 +44,9 @@ export default class Line {
     ];
   }
 
-  join = (line) => {
-    this._text += line._text;
-    this.spans.join(line.spans);
+  join = (...lines) => {
+    this._text += lines.map(line => line._text).join('');
+    this.spans.join(...lines.map(line => line.spans));
   }
 
   highlight = (beg, end) => {

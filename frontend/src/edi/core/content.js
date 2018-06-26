@@ -13,10 +13,6 @@ export default class Content {
     return this.lines.length;
   }
 
-  firstRow = () => {
-    return 0;
-  }
-
   lastRow = () => {
     return Math.max(0, this.rows() - 1);
   }
@@ -25,18 +21,22 @@ export default class Content {
     return this.lines[this.normalizedRow(row)];
   }
 
-  text = (begRow, begCol, endRow, endCol) => {
-    begRow = begRow == null ? 0 : begRow;
+  lastLine = () => {
+    return this.lines[this.lastRow()];
+  }
+
+  text = (firstRow, begCol, lastRow, endCol) => {
+    firstRow = firstRow == null ? 0 : firstRow;
     begCol = begCol == null ? 0 : begCol;
-    endRow = endRow == null ? this.rows() : endRow;
-    endCol = endCol == null ? this.line(endRow - 1).cols() : endCol;
-    if (begRow === endRow - 1) {
-      return this.line(begRow).text(begCol, endCol);
+    lastRow = lastRow == null ? this.lastRow() : lastRow;
+    endCol = endCol == null ? this.line(lastRow).cols() : endCol;
+    if (firstRow === lastRow) {
+      return this.line(firstRow).text(begCol, endCol);
     } else {
-      const firstLine = this.line(begRow).text(begCol);
-      const middleLines = this.lines.slice(begRow + 1, endRow - 1);
-      const lastLine = this.line(endRow - 1).text(0, endCol);
-      return [firstLine, ...middleLines, lastLine].join('\n');
+      const pre = this.line(firstRow).text(begCol);
+      const mids = this.lines.slice(firstRow + 1, lastRow);
+      const aft = this.line(lastRow).text(0, endCol);
+      return [pre, ...mids, aft].join('\n');
     }
   }
 
@@ -76,15 +76,12 @@ export default class Content {
     }
   }
 
-  deleteChar = (row, col) => {
-    this.deleteText(row, col, row + 1, col + 1);
-  }
-
   deleteLine = (row) => {
     this.lines.splice(row, 1);
   }
 
   deleteText = (firstRow, begCol, lastRow, endCol) => {
+    const deletedText = this.text(firstRow, begCol, lastRow, endCol);
     if (firstRow === lastRow) {
       this.line(firstRow).deleteText(begCol, endCol);
     } else {
@@ -102,8 +99,15 @@ export default class Content {
       } else {
         lastLine.deleteText(0, endCol);
       }
-      console.log(wholeDeletionBegRow, wholeDeletionRows);
       this.lines.splice(wholeDeletionBegRow, wholeDeletionRows);
+    }
+    return deletedText;
+  }
+
+  joinLines = (row, count) => {
+    count = Math.max(0, Math.min(this.lastRow() - row, count));
+    if (count) {
+      this.line(row).join(...this.lines.splice(row + 1, count));
     }
   }
 
@@ -113,6 +117,6 @@ export default class Content {
   }
 
   normalizedRow = (row) => {
-    return Math.max(this.firstRow(), Math.min(this.lastRow(), row));
+    return Math.max(0, Math.min(this.lastRow(), row));
   }
 }

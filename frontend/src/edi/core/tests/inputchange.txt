@@ -1,0 +1,11 @@
+First line
+  First col
+    i then <text> then <c-k> then u + <c-r>
+
+<text>
+  'hi'
+  '\n'
+  '\nme'
+  'hi\n'
+  'hi\nme'
+  'hi\nme\you'

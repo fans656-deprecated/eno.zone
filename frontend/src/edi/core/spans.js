@@ -62,8 +62,8 @@ export default class Spans {
     ];
   }
 
-  join = (spans) => {
-    this._spans = this._spans.concat(spans._spans);
+  join = (...spansArray) => {
+    this._spans = this._spans.concat(...spansArray.map(spans => spans._spans));
   }
 
   setAttrs = (begCol, endCol, attrs) => {
@@ -110,6 +110,7 @@ function _normalized(spans) {
 }
 
 function _compact(spans) {
+  if (spans.length === 0) return spans;
   const res = [spans.shift()];
   for (let cur of spans) {
     const last = res[res.length - 1];

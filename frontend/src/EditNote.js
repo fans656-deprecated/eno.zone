@@ -4,8 +4,7 @@ import { withRouter } from 'react-router-dom';
 import qs from 'query-string';
 import yaml from 'js-yaml';
 
-//import Edi from './editor/edi';
-import Edi from './editor/new/edi';
+import Edi from './edi';
 import { Button, DangerButton } from './common';
 import {
   getNote, putNote, postNote, deleteNote, parseNoteMeta,
