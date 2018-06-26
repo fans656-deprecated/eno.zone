@@ -1,6 +1,16 @@
 export default class Record {
   constructor() {
     this.ops = [];
+    this.recording = false;
+  }
+
+  start = () => {
+    this.ops = [];
+    this.recording = true;
+  }
+
+  finish = () => {
+    this.recording = false;
   }
 
   feedKey = (key) => {

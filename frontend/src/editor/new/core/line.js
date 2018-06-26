@@ -4,14 +4,15 @@ import { split } from './utils';
 export default class Line {
   constructor(text, spans) {
     this._text = text;
-    this.spans = spans || new Spans(text, {
-      highlight: false,
-      selection: false,
-    });
+    this.spans = spans || new Spans(text, _defaultAttrs());
   }
 
   cols = () => {
-    return this.text().length;
+    return this._text.length;
+  }
+
+  lastCol = () => {
+    return this.normalizedCol(this.cols() - 1);
   }
 
   text = (beg, end) => {
@@ -21,24 +22,22 @@ export default class Line {
 
   insertText = (col, text) => {
     const [pre, aft] = split(this._text, col);
-    const newText = pre + text + aft;
-    this._text = newText;
-    const {span} = this.spans.at(col);
-    span.text = newText;
-    span.highlight = false;
+    this._text = pre + text + aft;
+    this.spans.insertText(col, text, _defaultAttrs());
   }
 
   deleteText = (beg, end) => {
     [beg, end] = this.normalizedRange(beg, end);
+    if (beg === end) return;
     const [pre, mid, aft] = split(this.text(), beg, end);
     this._text = pre + aft;
-    this._spans.deleteCols(beg, end);
+    this.spans.deleteText(beg, end);
     return mid;
   }
 
   split = (col) => {
     const [pre, aft] = split(this._text, col);
-    const [preSpans, aftSpans] = this.spans.splitAtCol(col);
+    const [preSpans, aftSpans] = this.spans.split(col);
     return [
       new Line(pre, preSpans),
       new Line(aft, aftSpans),
@@ -50,16 +49,12 @@ export default class Line {
     this.spans.join(line.spans);
   }
 
-  lastCol = () => {
-    return Math.max(0, this.cols() - 1);
-  }
-
   highlight = (beg, end) => {
-    this.spans.setAttrs(beg, end, {highlight: true});
+    this.spans.setAttrs(beg, end, {highlighted: true});
   }
 
   select = (beg, end) => {
-    this.spans.setAttrs(beg, end, {select: true});
+    this.spans.setAttrs(beg, end, {selected: true});
   }
 
   normalizedCol = (col, allowTail) => {
@@ -77,3 +72,10 @@ export default class Line {
     ];
   }
 }
+
+const _defaultAttrs = () => {
+  return {
+    highlighted: false,
+    selected: false,
+  };
+};

@@ -48,6 +48,14 @@ export default class Content {
     this.lines = texts.map(text => new Line(text));
   }
 
+  insertChar = (row, col, ch) => {
+    this.insertText(row, col, ch);
+  }
+
+  insertLine = (row, text) => {
+    this.lines.splice(row, 0, new Line(text));
+  }
+
   insertText = (row, col, text) => {
     if (text.length === 0) {
       return;
@@ -60,28 +68,43 @@ export default class Content {
       const addedRows = texts.length - 1;
       const lastAddedCols = texts[texts.length - 1].length;
       const [left, right] = this.line(row).split(col);
-      left.insert(col, texts.shift());
-      right.insert(0, texts.pop());
+      left.insertText(col, texts.shift());
+      right.insertText(0, texts.pop());
       this.lines.splice(row, 1, left, right);
       this.lines.splice(row + 1, 0, ...texts.map(text => new Line(text)));
       return [addedRows, lastAddedCols];
     }
   }
 
-  deleteText = (begRow, begCol, endRow, endCol) => {
-    if (begRow === endRow - 1) {
-      this.line(begRow).deleteText(begCol, endCol);
-    } else {
-      this.line(begRow).deleteText(begCol);
-      for (let row = 1; row < endRow - 1; ++row) {
-        this.deleteLine(row);
-      }
-      this.line(endRow).deleteText(endRow - 1, 0, endCol);
-    }
+  deleteChar = (row, col) => {
+    this.deleteText(row, col, row + 1, col + 1);
   }
 
   deleteLine = (row) => {
     this.lines.splice(row, 1);
+  }
+
+  deleteText = (firstRow, begCol, lastRow, endCol) => {
+    if (firstRow === lastRow) {
+      this.line(firstRow).deleteText(begCol, endCol);
+    } else {
+      let wholeDeletionBegRow = firstRow;
+      let wholeDeletionRows = lastRow - firstRow - 1;
+      if (begCol <= 0) {
+        ++wholeDeletionRows;
+      } else {
+        this.line(firstRow).deleteText(begCol);
+        ++wholeDeletionBegRow;
+      }
+      const lastLine = this.line(lastRow);
+      if (endCol >= lastLine.cols()) {
+        ++wholeDeletionRows;
+      } else {
+        lastLine.deleteText(0, endCol);
+      }
+      console.log(wholeDeletionBegRow, wholeDeletionRows);
+      this.lines.splice(wholeDeletionBegRow, wholeDeletionRows);
+    }
   }
 
   search = (pattern) => {

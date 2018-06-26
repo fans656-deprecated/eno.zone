@@ -7,10 +7,10 @@ import { Mode, Feed } from './constants';
 import { loop } from './utils';
 
 export default class Surface {
-  constructor(editor, content, props) {
+  constructor(editor, props) {
     props = props || {};
     this.editor = editor;
-    this.content = content || new Content();
+    this.content = props.content || new Content();
     this.mode = props.mode || Mode.Input;
     this.normal = new Normal(this);
     this.caret = new Caret(this, 0, 0);
@@ -58,15 +58,15 @@ export default class Surface {
   }
 
   doDeleteChar = (row, col) => {
-    this.doDeleteText(row, col, row + 1, col + 1);
+    this.doDeleteText(row, col, row, col + 1);
   }
 
-  doDeleteText = (...carets) => {
-    const [begRow, begCol] = carets;
-    const deletedText = this.content.text(...carets);
+  doDeleteText = (begRow, begCol, endRow, endCol) => {
+    const deletedText = this.content.text(begRow, begCol, endRow, endCol);
     this.history.push({
       redo: () => {
-        this.deleteText(...carets);
+        this.deleteText(begRow, begCol, endRow, endCol);
+        // TODO: where to put caret?
         this.caret.setRowCol(begRow, begCol - 1);
       },
       undo: () => {
@@ -141,9 +141,6 @@ export default class Surface {
 
   feedText = (text) => {
     this.insertText(...this.rowcol(), text);
-    if (this.onInputChange) {  // for inc search
-      this.onInputChange(this.content.text());
-    }
   }
 
   execNormal = (op) => {

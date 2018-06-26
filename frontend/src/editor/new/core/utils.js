@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function split(text, ...cols) {
   const res = [];
   let beg = 0;

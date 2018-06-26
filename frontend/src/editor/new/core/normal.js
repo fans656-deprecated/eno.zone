@@ -111,7 +111,7 @@ export default class Normal {
         return Feed.Handled;
       case '<c-m>':
         this.operation = key;
-        if (this.surface.editor.record) {
+        if (this.surface.editor.isRecording()) {
           console.log('warning: nested replay');
           this.reset();
         } else {
@@ -127,7 +127,7 @@ export default class Normal {
         return Feed.Handled;
       case 'q':
         this.operation = key;
-        if (this.surface.editor.record) {
+        if (this.surface.editor.isRecording()) {
           this.execute();
         } else {
           this.state = State.Target;

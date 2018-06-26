@@ -1,24 +1,27 @@
 import clone from 'clone';
 import Content from './content';
 import Surface from './surface';
+import CommandSurface from './CommandSurface';
 import Record from './record';
 import { Mode, Feed } from './constants';
 
 export default class Editor {
   constructor(text, updateUI) {
-    this.content = new Content(text);
     this.updateUI = updateUI || (() => null);
 
-    this.record = null;
-    this.lastRecord = null;
-
-    this.contentSurface = new Surface(this, this.content, {mode: Mode.Normal});
+    this.contentSurface = new Surface(this, {
+      content: new Content(text),
+      mode: Mode.Normal,
+    });
     this.contentSurface.map(':', () => this.prepareCommand(':'));
     this.contentSurface.map('/', () => this.prepareCommand('/'));
     this.contentSurface.map('?', () => this.prepareCommand('?'));
 
-    this.commandSurface = new Surface(this);
-    this.commandSurface.onInputChange = this.onCommandChange;
+    this.commandSurface = new CommandSurface(this, {
+      onCommandChange: this.onCommandChange,
+    });
+
+    this.record = new Record();
 
     this.mode = null;
     this.activeSurface = null;
@@ -27,8 +30,10 @@ export default class Editor {
 
   isIn = (mode) => this.mode === mode
 
+  isRecording = () => this.record.recording
+
   feedKey = (key) => {
-    if (this.record) {
+    if (this.isRecording()) {
       this.record.feedKey(key);
     }
     return this.activeSurface.feedKey(key);
@@ -91,28 +96,24 @@ export default class Editor {
   }
 
   startRecording = () => {
-    this.record = new Record();
+    this.record.start();
     this.updateUI();
   }
 
   finishRecording = () => {
     this.record.ops.pop();  // pop last 'q'
-    this.lastRecord = clone(this.record);
-    this.record = null;
+    this.record.finish();
     this.updateUI();
   }
 
   replay = () => {
-    if (this.lastRecord) {
-      const ops = this.lastRecord.ops;
-      for (const op of ops) {
-        if (op.type === 'key') {
-          this.feedKey(op.value);
-        } else {
-          this.feedText(op.value);
-        }
-      };
-    }
+    for (const op of this.record.ops) {
+      if (op.type === 'key') {
+        this.feedKey(op.value);
+      } else {
+        this.feedText(op.value);
+      }
+    };
   }
 
   onCommandChange = (text) => {

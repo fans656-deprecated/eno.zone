@@ -20,22 +20,6 @@ export default class Edi extends React.Component {
     const editor = this.editor;
     const contentSurface = editor.contentSurface;
     const content = contentSurface.content;
-    //contentSurface.search('fo');
-    //contentSurface.search('f');
-
-    //content.insertText(0, 0, 'hi');
-    //content.insertText(0, 1, 'hi');
-    //content.insertText(0, 4, 'hi');
-
-    //content.insertText(0, 3, 'hi\nyou\nme');
-    //content.insertText(0, 4, 'hi\nyou\nme');
-    //content.insertText(3, content.line(3).cols(), '**\n??\n!!');
-
-    //content.insertText(0, 0, 'a');
-    //content.insertText(0, 1, 'b');
-    //console.log(content.lines);
-    //throw 0;
-
     this.update();
   }
 
@@ -44,7 +28,7 @@ export default class Edi extends React.Component {
     if (this.state.focused) {
       classes.push('focused');
     }
-    if (this.editor.record) {
+    if (this.editor.isRecording()) {
       classes.push('recording');
     }
     return (

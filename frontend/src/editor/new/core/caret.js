@@ -98,6 +98,5 @@ export default class Caret {
 
   update = () => {
     this.surface.editor.updateUI();
-    console.log('Caret.update');
   }
 }
