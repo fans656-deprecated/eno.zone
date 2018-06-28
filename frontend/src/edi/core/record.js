@@ -1,3 +1,5 @@
+import clone from 'clone';
+
 export default class Record {
   constructor(editor) {
     this.editor = editor;
@@ -18,7 +20,8 @@ export default class Record {
 
   play = () => {
     this.playing = true;
-    for (const op of this.ops) {
+    const ops = clone(this.ops);
+    for (const op of ops) {
       if (op.type === 'key') {
         this.editor.feedKey(op.value);
       } else {

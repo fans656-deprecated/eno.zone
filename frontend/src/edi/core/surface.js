@@ -4,8 +4,8 @@ import Caret from './caret';
 import History from './history';
 import Selection from './selection';
 import InputChange from './inputchange';
-import { Mode, Feed, Visual } from './constants';
-import { loop } from './utils';
+import { Mode, Feed, Visual, Insert } from './constants';
+import { loop, defaultIfNull } from './utils';
 
 export default class Surface {
   constructor(editor, props) {
@@ -14,6 +14,7 @@ export default class Surface {
     this.content = props.content || new Content();
     this.mode = props.mode || Mode.Input;
     this.selection = new Selection(this);
+    this.insertType = Insert.Default;
     this.normal = new Normal(this);
     this.caret = new Caret(this, 0, 0);
     this.history = new History(this);
@@ -92,9 +93,20 @@ export default class Surface {
   }
 
   inputAtLineHead = () => {
-    this._switchToInputMode({
-      whenInput: this.caret.toFirstNonSpaceCol,
-    });
+    if (this.selection.active) {
+      switch (this.selection.type) {
+        case Visual.Block:
+          this.blockInsert();
+          break;
+        default:
+          console.log('visual insert not handled');
+          break;
+      }
+    } else {
+      this._switchToInputMode({
+        whenInput: this.caret.toFirstNonSpaceCol,
+      });
+    }
   }
 
   inputAfterCaret = () => {
@@ -138,6 +150,9 @@ export default class Surface {
     }
     switch (this.mode) {
       case Mode.Input:
+        if (this.insertType === Insert.Block) {
+          this.finishBlockInsert();
+        }
         this.saveInputChangeHistory();
         this.switchToNormalMode();
         break;
@@ -402,6 +417,39 @@ export default class Surface {
         break;
       default:
         break;
+    }
+  }
+
+  blockInsert() {
+    const selection = this.selection;
+    selection.toggle(false);
+    this.insertType = Insert.Block;
+    this._switchToInputMode({
+      whenInput: () => {
+        this.caret.setRowCol(...selection.head());
+      }
+    });
+  }
+
+  finishBlockInsert() {
+    this.insertType = Insert.Default;
+    const inputChange = this.inputChange;
+    const text = inputChange.text();
+    if (text.indexOf('\n') === -1) {
+      const [left, top, right, bottom] = this.selection.blockRect();
+      this.history.push({
+        squashable: true,
+        redo: () => {
+          for (let row = top + 1; row <= bottom; ++row) {
+            this.content.insertText(row, left, text);
+          }
+        },
+        undo: () => {
+          for (let row = top + 1; row <= bottom; ++row) {
+            this.content.deleteText(row, left, row, left + text.length);
+          }
+        }
+      });
     }
   }
 

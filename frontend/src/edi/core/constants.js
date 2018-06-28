@@ -14,3 +14,8 @@ export const Visual = {
   Line: 'line',
   Block: 'block',
 };
+
+export const Insert = {
+  Default: 'default',
+  Block: 'block',
+};

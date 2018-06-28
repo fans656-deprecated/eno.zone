@@ -38,14 +38,14 @@ export default class Editor {
   isReplaying = () => this.record.playing
 
   feedKey = (key) => {
-    if (this.isRecording()) {
+    if (this.isRecording() && !this.isReplaying()) {
       this.record.feedKey(key);
     }
     return this.activeSurface.feedKey(key);
   }
 
   feedText = (text) => {
-    if (this.record) {
+    if (this.isRecording() && !this.isReplaying()) {
       this.record.feedText(text);
     }
     this.activeSurface.feedText(text);

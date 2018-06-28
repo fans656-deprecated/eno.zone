@@ -39,6 +39,14 @@ export default class Selection {
     }
   }
 
+  head() {
+    return this.headtail()[0];
+  }
+
+  tail() {
+    return this.headtail()[1];
+  }
+
   blockRect() {
     const [head, tail] = this.headtail();
     let [top, left] = head;

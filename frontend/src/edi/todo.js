@@ -1,5 +1,5 @@
 `
-V insert
+<c-v> insert
 visual i/s/x/y/d
 40i
 search
