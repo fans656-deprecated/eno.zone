@@ -1,9 +1,8 @@
 `
-
+V insert
+visual i/s/x/y/d
+40i
 search
-w/e/b
-input change history
 C/D
 yy/yw/yiw/..
-
 `

@@ -1,6 +1,6 @@
 import Content from './content';
 import Surface from './surface';
-import CommandSurface from './CommandSurface';
+import CommandSurface from './command-surface';
 import Record from './record';
 import { Mode, Feed } from './constants';
 
@@ -20,7 +20,12 @@ export default class Editor {
       onCommandChange: this.onCommandChange,
     });
 
-    this.record = new Record();
+    this.surfaces = [
+      this.contentSurface,
+      this.commandSurface,
+    ];
+
+    this.record = new Record(this);
 
     this.mode = null;
     this.activeSurface = null;
@@ -30,6 +35,7 @@ export default class Editor {
   isIn = (mode) => this.mode === mode
 
   isRecording = () => this.record.recording
+  isReplaying = () => this.record.playing
 
   feedKey = (key) => {
     if (this.isRecording()) {
@@ -39,10 +45,10 @@ export default class Editor {
   }
 
   feedText = (text) => {
-    this.activeSurface.feedText(text);
     if (this.record) {
       this.record.feedText(text);
     }
+    this.activeSurface.feedText(text);
   }
 
   prepareCommand = (text) => {
@@ -94,32 +100,31 @@ export default class Editor {
     }
   }
 
-  startRecording = () => {
+  startRecord = () => {
     this.record.start();
     this.updateUI();
   }
 
-  finishRecording = () => {
-    this.record.ops.pop();  // pop last 'q'
+  finishRecord = () => {
     this.record.finish();
+    this._squashHistory();
     this.updateUI();
   }
 
   replay = () => {
-    for (const op of this.record.ops) {
-      if (op.type === 'key') {
-        this.feedKey(op.value);
-      } else {
-        this.feedText(op.value);
-      }
-    };
+    this.record.play();
+    this._squashHistory();
   }
 
   onCommandChange = (text) => {
-    //if (text.startsWith('/')) {
-    //  const pattern = text.substring(1);
-    //  console.log(`about to search |${pattern}|`);
-    //  //this.contentSurface.search(text.substring(1));
-    //}
+    if (text.startsWith('/')) {
+      const pattern = text.substring(1);
+      console.log(`about to search |${pattern}|`);
+      //this.contentSurface.search(text.substring(1));
+    }
+  }
+
+  _squashHistory = () => {
+    this.surfaces.forEach(surface => surface.history.squash());
   }
 }

@@ -1,16 +1,10 @@
 const text = String.raw`
-yh中文
-just for test
-hello world
-and etc etc, like void
-`.trim();
-
-`
 import React from 'react';
 import $ from 'jquery';
 import Content from './content';
 import Surface from './surface';
 export default class View extends React.Component {
+and etc etc, like void
   constructor(props) {
     super(props);
     this.surface = props.surface;
@@ -31,6 +25,10 @@ export default class View extends React.Component {
   hideCaret = () => {
     this.caret.hide();
   }
+`.trim();
+`
+if (foo.bar == /^and$/) {
+hello world
 
   setCaretType = () => {
   }

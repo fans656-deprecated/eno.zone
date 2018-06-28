@@ -1,7 +1,9 @@
 export default class Record {
-  constructor() {
+  constructor(editor) {
+    this.editor = editor;
     this.ops = [];
     this.recording = false;
+    this.playing = false;
   }
 
   start = () => {
@@ -10,7 +12,20 @@ export default class Record {
   }
 
   finish = () => {
+    this.ops.pop();  // pop last 'q'
     this.recording = false;
+  }
+
+  play = () => {
+    this.playing = true;
+    for (const op of this.ops) {
+      if (op.type === 'key') {
+        this.editor.feedKey(op.value);
+      } else {
+        this.editor.feedText(op.value);
+      }
+    };
+    this.playing = false;
   }
 
   feedKey = (key) => {

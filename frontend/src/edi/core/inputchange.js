@@ -5,6 +5,7 @@ export default class InputChange {
   }
 
   beforeInput = () => {
+    this.repeatCount = this.surface.op.count;
     this.rowcolBeforeInput = this.surface.rowcol();
   }
 
@@ -20,6 +21,7 @@ export default class InputChange {
     this.aftChars = [];
     this.backspaceCount = 0;
     this.delCount = 0;
+    this.repeatCount = 1;
   }
 
   text = () => {

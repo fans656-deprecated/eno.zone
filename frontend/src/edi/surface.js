@@ -75,11 +75,11 @@ export default class Surface extends React.Component {
 
   renderElem = (span, iElem) => {
     const classes = [];
-    if (span.attrs.highlight) {
-      classes.push('highlight');
+    if (span.attrs.highlighted) {
+      classes.push('highlighted');
     }
-    if (span.attrs.selection) {
-      classes.push('selection');
+    if (span.attrs.selected) {
+      classes.push('selected');
     }
     return (
       <span

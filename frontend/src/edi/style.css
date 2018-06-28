@@ -60,8 +60,12 @@
   line-height: 1.4;
 }
 
-.edi .view .text .line .highlight {
+.edi .view .text .line .elem.highlighted {
   background: #FF9632;
+}
+
+.edi .view .text .line .elem.selected {
+  background: lightsteelblue;
 }
 
 .edi .caret {

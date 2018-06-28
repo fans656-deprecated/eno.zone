@@ -2,8 +2,9 @@ import Content from './content';
 import Normal from './normal';
 import Caret from './caret';
 import History from './history';
+import Selection from './selection';
 import InputChange from './inputchange';
-import { Mode, Feed } from './constants';
+import { Mode, Feed, Visual } from './constants';
 import { loop } from './utils';
 
 export default class Surface {
@@ -12,11 +13,13 @@ export default class Surface {
     this.editor = editor;
     this.content = props.content || new Content();
     this.mode = props.mode || Mode.Input;
+    this.selection = new Selection(this);
     this.normal = new Normal(this);
     this.caret = new Caret(this, 0, 0);
-    this.history = new History();
+    this.history = new History(this);
     this.inputChange = new InputChange(this);
     this.active = false;
+    this.op = null;
   }
 
   map = (key, func) => {
@@ -38,6 +41,15 @@ export default class Surface {
 
   setText = (text) => {
     this.content.setText(text);
+  }
+
+  normalDeleteChar = () => {
+    const [row, col] = this.rowcol();
+    this.doDeleteText(row, col, row, col + this.op.count);
+  }
+
+  currentLine() {
+    return this.content.line(this.caret.row);
   }
 
   doDeleteText = (firstRow, begCol, lastRow, endCol) => {
@@ -75,27 +87,47 @@ export default class Surface {
     return false;
   }
 
-  _inputAtCaret = () => {
+  inputAtCaret = () => {
     this._switchToInputMode();
   }
 
-  _inputAtLineHead = () => {
-    this._switchToInputMode(this.caret.toFirstNonSpaceCol);
+  inputAtLineHead = () => {
+    this._switchToInputMode({
+      whenInput: this.caret.toFirstNonSpaceCol,
+    });
   }
 
-  _inputAfterCaret = () => {
-    this._switchToInputMode(() => this.caret.incCol(1));
+  inputAfterCaret = () => {
+    this._switchToInputMode({
+      whenInput: () => this.caret.incCol(1),
+    });
   }
 
-  _inputAtLineEnd = () => {
-    this._switchToInputMode(this.caret.toLastCol);
+  inputAtLineEnd = () => {
+    this._switchToInputMode({
+      whenInput: this.caret.toLastCol,
+    });
   }
 
-  _switchToInputMode = (callback) => {
+  deleteCharAndInput() {
+    this._switchToInputMode({
+      beforeInput: this.normalDeleteChar,
+    });
+  }
+
+  _switchToInputMode = (props) => {
+    props = props || {};
     const inputChange = this.inputChange;
+    this.history.squashOn = true;
     inputChange.beforeInput();
+    if (props.beforeInput) {
+      props.beforeInput();
+    }
     this.switchToInputMode(() => {
-      if (callback) callback();
+      if (props.whenInput) {
+        props.whenInput();
+      }
+      this.history.squashOn = false;
       inputChange.whenInput();
     });
   }
@@ -108,6 +140,9 @@ export default class Surface {
       case Mode.Input:
         this.saveInputChangeHistory();
         this.switchToNormalMode();
+        break;
+      case Mode.Normal:
+        this.selection.toggle(false);
         break;
       default:
         break;
@@ -126,6 +161,8 @@ export default class Surface {
     const delCount = inputChange.delCount;
     inputChange.reset();
     this.history.push({
+      executeRedo: false,
+      squashable: true,
       redo: () => {
         this.caret.setRowCol(...rowcolBeforeInput);
         this.switchToInputMode(() => {
@@ -153,8 +190,8 @@ export default class Surface {
           inputChange.reset();
         });
       },
-      executeRedo: false,
     });
+    this.history.squash();
   }
 
   feedKey = (key) => {
@@ -170,19 +207,24 @@ export default class Surface {
     } else {
       return this.normal.feed(key);
     }
-    return Feed.Handled;
   }
 
   handleInputKeyFeed = (key) => {
     switch (key) {
       case '<cr>':
+      case '<c-m>':
         this.inputModeInsert('\n');
         return Feed.Handled;
       case '<bs>':
+      case '<c-h>':
         this.inputModeBackspace();
         return Feed.Handled;
       case '<del>':
+      case '<c-e>':
         this.inputModeDel();
+        return Feed.Handled;
+      case '<c-j>':
+        // TODO: input without break current line
         return Feed.Handled;
       default:
         break;
@@ -234,46 +276,43 @@ export default class Surface {
     this.updateUI();
   }
 
-  feedText = (text) => {
+  feedText(text) {
     if (text.length) {
       this.inputModeInsert(text);
     }
   }
 
   execNormal = (op) => {
+    this.op = op;
     if (op.operation) {
       this.execNormalOperation(op);
     } else if (op.move) {
       this.execNormalMove(op);
+    } else if (op.target) {
+      this.execNormalTarget(op);
     }
+    this.op = null;
   }
 
   execNormalOperation = (op) => {
     switch (op.operation) {
       case 'x':
-        const [row, col] = this.rowcol();
-        this.doDeleteText(row, col, row, col + op.count);
+        this.normalDeleteChar();
         break;
       case 'i':
-        this._inputAtCaret();
+        this.inputAtCaret();
         break;
       case 'I':
-        this._inputAtLineHead();
+        this.inputAtLineHead();
         break;
       case 'a':
-        this._inputAfterCaret();
+        this.inputAfterCaret();
         break;
       case 'A':
-        this._inputAtLineEnd();
+        this.inputAtLineEnd();
         break;
       case 's':
-        // TODO: input change
-        this.doDeleteChar(...this.rowcol());
-        this.switchToInputMode();
-        break;
-      case 'S':
-        // TODO: input change
-        this.switchToInputMode(() => this.caret.toLastCol());
+        this.deleteCharAndInput();
         break;
       case 'o':
       case 'O':
@@ -290,10 +329,19 @@ export default class Surface {
         break;
       case 'q':
         if (op.target === 'q') {
-          this.editor.startRecording();
+          this.editor.startRecord();
         } else {
-          this.editor.finishRecording();
+          this.editor.finishRecord();
         }
+        break;
+      case 'v':
+        this.selection.toggle(Visual.Char);
+        break;
+      case 'V':
+        this.selection.toggle(Visual.Line);
+        break;
+      case '<c-v>':
+        this.selection.toggle(Visual.Block);
         break;
       default:
         break;
@@ -335,6 +383,22 @@ export default class Surface {
         if (op.target === 'g') {
           this.caret.toFirstRow();
         }
+        break;
+      default:
+        break;
+    }
+  }
+
+  execNormalTarget(op) {
+    switch (op.target) {
+      case 'w':
+        loop(op.count, this.caret.wordForward);
+        break;
+      case 'b':
+        loop(op.count, this.caret.wordBackward);
+        break;
+      case 'e':
+        loop(op.count, this.caret.wordEnd);
         break;
       default:
         break;

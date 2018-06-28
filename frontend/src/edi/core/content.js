@@ -116,6 +116,18 @@ export default class Content {
     return searchAll(pattern, lines);
   }
 
+  select(firstRow, firstCol, lastRow, lastCol, selected) {
+    if (firstRow === lastRow) {
+      this.line(firstRow).select(firstCol, lastCol, selected);
+    } else {
+      this.line(firstRow).select(firstCol, null, selected);
+      for (let row = firstRow + 1; row < lastRow; ++row) {
+        this.line(row).select(null, null, selected);
+      }
+      this.line(lastRow).select(0, lastCol, selected);
+    }
+  }
+
   normalizedRow = (row) => {
     return Math.max(0, Math.min(this.lastRow(), row));
   }

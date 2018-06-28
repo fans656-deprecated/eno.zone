@@ -1,3 +1,13 @@
+export const noop = () => null
+
+export function defaultIfNull(val, def) {
+  return val == null ? def : val;
+}
+
+export function caretBefore(row0, col0, row1, col1) {
+  return row0 === row1 ? col0 < col1 : row0 < row1 ;
+}
+
 export function split(text, ...cols) {
   const res = [];
   let beg = 0;
@@ -41,6 +51,28 @@ export function loop(count, func) {
   for (let i = 0; i < count; ++i) {
     func();
   }
+}
+
+export function groupby(xs, getkey) {
+  const xss = [];
+  const cur = {key: undefined, xs: []};
+  for (const x of xs) {
+    const key = getkey(x);
+    if (cur.xs.length === 0) {
+      cur.key = key;
+      cur.xs.push(x);
+    } else if (cur.key === key) {
+      cur.xs.push(x);
+    } else {
+      xss.push(cur.xs);
+      cur.key = key;
+      cur.xs = [x];
+    }
+  }
+  if (cur.xs.length) {
+    xss.push(cur.xs);
+  }
+  return xss;
 }
 
 export function getWord(line, col) {

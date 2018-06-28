@@ -106,6 +106,7 @@ export default class Normal {
       case 's': case 'S':
       case 'D': case 'C': case 'Y':
       case 'x': case 'r': case '~': case 'u':
+      case 'v': case 'V': case '<c-v>':
       case '<c-r>': case '<c-k>':
         this.operation = key;
         this.execute();

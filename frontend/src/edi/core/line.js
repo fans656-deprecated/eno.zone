@@ -1,5 +1,5 @@
 import Spans from './spans';
-import { split } from './utils';
+import { split, defaultIfNull } from './utils';
 
 export default class Line {
   constructor(text, spans) {
@@ -49,12 +49,18 @@ export default class Line {
     this.spans.join(...lines.map(line => line.spans));
   }
 
-  highlight = (beg, end) => {
-    this.spans.setAttrs(beg, end, {highlighted: true});
+  highlight = (firstCol, lastCol, highlighted) => {
+    firstCol = defaultIfNull(firstCol, 0);
+    lastCol = defaultIfNull(lastCol, this.lastCol());
+    highlighted = defaultIfNull(highlighted, true);
+    this.spans.setAttrs(firstCol, lastCol + 1, {highlighted: highlighted});
   }
 
-  select = (beg, end) => {
-    this.spans.setAttrs(beg, end, {selected: true});
+  select = (firstCol, lastCol, selected) => {
+    firstCol = defaultIfNull(firstCol, 0);
+    lastCol = defaultIfNull(lastCol, this.lastCol());
+    selected = defaultIfNull(selected, true);
+    this.spans.setAttrs(firstCol, lastCol + 1, {selected: selected});
   }
 
   normalizedCol = (col, allowTail) => {
@@ -70,6 +76,34 @@ export default class Line {
       this.normalizedCol(beg),
       this.normalizedCol(end, true),
     ];
+  }
+
+  words() {
+    const words = [];
+    const re = /(?<word>(\w+)|([^\s\w]+)) ?/g;
+    while (true) {
+      const match = re.exec(this._text);
+      if (!match) break;
+      const text = match.groups.word;
+      const beg = match.index;
+      const end = beg + text.length;
+      words.push({
+        beg: beg,
+        end: end,
+        text: text,
+      });
+    }
+    for (let i = 0; i < words.length - 1; ++i) {
+      words[i].outEnd = words[i + 1].beg;
+    }
+    for (let i = words.length - 1; i > 0; --i) {
+      words[i].outBeg = words[i - 1].outEnd;
+    }
+    if (words.length) {
+      words[0].outBeg = 0;
+      words[words.length - 1].outEnd = this.cols();
+    }
+    return words;
   }
 }
 

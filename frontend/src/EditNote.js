@@ -52,14 +52,6 @@ class EditNote extends React.Component {
         className="edit-blog"
         onKeyUp={this.onKeyUp}
       >
-        {true ? null : <Edi
-          ref={ref => this.edi = ref}
-          content={this.state.note.content}
-          onSave={this.onSave}
-          onQuit={this.onQuit}
-          onSaveAndQuit={this.onSaveAndQuit}
-          onUpload={this.onUpload}
-        />}
         <Edi className="note"/>
         <div className="buttons horizontal">
           <div className="left">

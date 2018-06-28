@@ -981,4 +981,13 @@ Spans.split(col)
     beg == col
 
 2018-06-26 09:52:03
-整理一下delete的操作，主要是涉及
+整理一下delete的操作，主要是涉及caret变化
+
+    x
+        line empty
+            > noop
+        not end
+            > deleteChar(row, col)
+        end
+            > deleteChar(row, col)
+            > caret.decCol(1)

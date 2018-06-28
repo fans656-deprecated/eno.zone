@@ -8,3 +8,9 @@ export const Feed = {
   Handled: 'handled',
   Continue: 'continue',
 };
+
+export const Visual = {
+  Char: 'char',
+  Line: 'line',
+  Block: 'block',
+};
