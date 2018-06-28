@@ -34,9 +34,10 @@ export default class Content {
       return this.line(firstRow).text(begCol, endCol);
     } else {
       const pre = this.line(firstRow).text(begCol);
-      const mids = this.lines.slice(firstRow + 1, lastRow);
+      const midLines = this.lines.slice(firstRow + 1, lastRow);
       const aft = this.line(lastRow).text(0, endCol);
-      return [pre, ...mids, aft].join('\n');
+      const mid = midLines.map(line => line._text);
+      return [pre, ...mid, aft].join('\n');
     }
   }
 
@@ -100,6 +101,7 @@ export default class Content {
         lastLine.deleteText(0, endCol);
       }
       this.lines.splice(wholeDeletionBegRow, wholeDeletionRows);
+      this.joinLines(firstRow, 1);
     }
     return deletedText;
   }

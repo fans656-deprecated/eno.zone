@@ -45,8 +45,12 @@ export default class Surface {
   }
 
   normalDeleteChar = () => {
-    const [row, col] = this.rowcol();
-    this.doDeleteText(row, col, row, col + this.op.count);
+    if (this.selection.active) {
+      this.deleteSelectedText();
+    } else {
+      const [row, col] = this.rowcol();
+      this.doDeleteText(row, col, row, col + this.op.count);
+    }
   }
 
   currentLine() {
@@ -123,7 +127,13 @@ export default class Surface {
 
   deleteCharAndInput() {
     this._switchToInputMode({
-      beforeInput: this.normalDeleteChar,
+      beforeInput: () => {
+        if (this.selection.active) {
+          this.deleteSelectedText(true);
+        } else {
+          this.normalDeleteChar();
+        }
+      }
     });
   }
 
@@ -321,6 +331,9 @@ export default class Surface {
       case 'x':
         this.normalDeleteChar();
         break;
+      case 'd':
+        this.deleteSelectedText(true);
+        break;
       case 'i':
         this.inputAtCaret();
         break;
@@ -458,6 +471,36 @@ export default class Surface {
         }
       });
     }
+  }
+
+  deleteSelectedText(reserveLastBlankLine) {
+    reserveLastBlankLine = defaultIfNull(reserveLastBlankLine, false);
+    const selection = this.selection;
+    const [head, tail] = selection.headtail();
+    const [firstRow, firstCol] = head;
+    const [lastRow, lastCol] = tail;
+    switch (selection.type) {
+      case Visual.Char:
+        this.doDeleteText(firstRow, firstCol, lastRow, lastCol + 1);
+        break;
+      case Visual.Line:
+        if (reserveLastBlankLine) {
+          this.doDeleteText(firstRow, 0, lastRow, null);
+        } else {
+          this.doDeleteText(firstRow, 0, lastRow + 1, 0);
+        }
+        break;
+      case Visual.Block:
+        const [left, top, right, bottom] = selection.blockRect();
+        this.history.squashOn = true;
+        for (let row = top; row <= bottom; ++row) {
+          this.doDeleteText(row, left, row, right + 1);
+        }
+        this.history.squash();
+        this.history.squashOn = false;
+        break;
+    }
+    selection.toggle(false);
   }
 
   updateUI = () => {

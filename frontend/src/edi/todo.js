@@ -1,5 +1,5 @@
 `
-visual i/s/x/y/d
+visual y
 search
 C/D
 yy/yw/yiw/..
