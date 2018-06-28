@@ -130,6 +130,7 @@ export default class Surface {
   _switchToInputMode = (props) => {
     props = props || {};
     const inputChange = this.inputChange;
+    inputChange.repeatCount = this.op.repeatCount;
     this.history.squashOn = true;
     inputChange.beforeInput();
     if (props.beforeInput) {
@@ -165,15 +166,19 @@ export default class Surface {
   }
 
   saveInputChangeHistory = () => {
-    const [finishRow, finishCol] = this.rowcol();
     const inputChange = this.inputChange;
     const text = inputChange.text();
+    const repeatCount = inputChange.repeatCount;
+    for (let i = 1; i < repeatCount; ++i) {
+      this.feedText(text);
+    }
     const preText = inputChange.preText();
     const aftText = inputChange.aftText();
     const rowcolBeforeInput = inputChange.rowcolBeforeInput;
     const rowcolWhenInput = inputChange.rowcolWhenInput;
     const backspaceCount = inputChange.backspaceCount;
     const delCount = inputChange.delCount;
+    const [finishRow, finishCol] = this.rowcol();
     inputChange.reset();
     this.history.push({
       executeRedo: false,
@@ -186,7 +191,9 @@ export default class Surface {
         for (let i = 0; i < backspaceCount; ++i) {
           this.feedKey('<bs>');
         }
-        this.feedText(text);
+        for (let i = 0; i < repeatCount; ++i) {
+          this.feedText(text);
+        }
         for (let i = 0; i < delCount; ++i) {
           this.feedKey('<del>');
         }
@@ -196,7 +203,7 @@ export default class Surface {
         this.switchToInputMode(() => {
           this.caret.setRowCol(finishRow, finishCol);
         });
-        for (let i = 0; i < text.length; ++i) {
+        for (let i = 0; i < text.length * repeatCount; ++i) {
           this.feedKey('<bs>');
         }
         this.feedText(preText + aftText);
