@@ -1,5 +1,5 @@
 import Line from './line';
-import { searchAll } from './utils';
+import { searchAll, defaultIfNull } from './utils';
 
 export default class Content {
   constructor(text) {
@@ -61,6 +61,7 @@ export default class Content {
     if (text.length === 0) {
       return;
     }
+    col = defaultIfNull(col, this.line(row).cols());
     const texts = text.split('\n');
     if (texts.length === 1) {
       this.line(row).insertText(col, text);
@@ -77,8 +78,9 @@ export default class Content {
     }
   }
 
-  deleteLine = (row) => {
-    this.lines.splice(row, 1);
+  deleteLine = (row, count) => {
+    count = defaultIfNull(count, 1);
+    this.lines.splice(row, count);
   }
 
   deleteText = (firstRow, begCol, lastRow, endCol) => {
@@ -88,8 +90,10 @@ export default class Content {
     } else {
       let wholeDeletionBegRow = firstRow;
       let wholeDeletionRows = lastRow - firstRow - 1;
+      let firstLineDeleted = false;
       if (begCol <= 0) {
         ++wholeDeletionRows;
+        firstLineDeleted = true;
       } else {
         this.line(firstRow).deleteText(begCol);
         ++wholeDeletionBegRow;
@@ -101,7 +105,9 @@ export default class Content {
         lastLine.deleteText(0, endCol);
       }
       this.lines.splice(wholeDeletionBegRow, wholeDeletionRows);
-      this.joinLines(firstRow, 1);
+      if (firstRow !== lastRow && !firstLineDeleted) {
+        this.joinLines(firstRow, 1);
+      }
     }
     return deletedText;
   }

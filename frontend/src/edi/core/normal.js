@@ -122,14 +122,11 @@ export default class Normal {
         return Feed.Handled;
       case 'd': case 'c': case 'y':
         this.operation = key;
-        if (key === 'd' && this.surface.selection.active) {
+        if (this.surface.hasSelection()) {
           this.execute();
           return Feed.Handled;
         }
         this.state = State.OperandCount;
-        if (this.surface.inAnyVisualMode()) {
-          this.execute();
-        }
         return Feed.Handled;
       case 'q':
         this.operation = key;

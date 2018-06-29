@@ -1,8 +1,11 @@
 const text = String.raw`
-import React from 'react';
+import ****
+!!!!React from 'react';
 import $ from 'jquery';
 import Content from './content';
 import Surface from './surface';
+`.trim();
+`
 export default class View extends React.Component {
 and etc etc, like void
   constructor(props) {

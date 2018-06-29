@@ -62,7 +62,7 @@ export default class Edi extends React.Component {
     );
   }
 
-  update = () => {
+  update = (callback) => {
     if (!this.editor) {
       return;
     }
@@ -81,7 +81,9 @@ export default class Edi extends React.Component {
           break;
       }
     }
-    this.setState({});
+    this.setState({}, () => {
+      if (callback) callback();
+    });
   }
 
   onFocus = () => {

@@ -4,6 +4,7 @@ import Caret from './caret';
 import History from './history';
 import Selection from './selection';
 import InputChange from './inputchange';
+import Paste from './paste';
 import { Mode, Feed, Visual, Insert } from './constants';
 import { loop, defaultIfNull } from './utils';
 
@@ -15,6 +16,7 @@ export default class Surface {
     this.mode = props.mode || Mode.Input;
     this.selection = new Selection(this);
     this.insertType = Insert.Default;
+    this.paste = new Paste(this);
     this.normal = new Normal(this);
     this.caret = new Caret(this, 0, 0);
     this.history = new History(this);
@@ -25,6 +27,10 @@ export default class Surface {
 
   map = (key, func) => {
     this.normal.keymap.add(key, func);
+  }
+
+  hasSelection() {
+    return this.selection.active;
   }
 
   activate = () => {
@@ -44,13 +50,17 @@ export default class Surface {
     this.content.setText(text);
   }
 
-  normalDeleteChar = () => {
+  normalXDelete() {
     if (this.selection.active) {
       this.deleteSelectedText();
     } else {
-      const [row, col] = this.rowcol();
-      this.doDeleteText(row, col, row, col + this.op.count);
+      this.normalDeleteChar();
     }
+  }
+
+  normalDeleteChar() {
+    const [row, col] = this.rowcol();
+    this.doDeleteText(row, col, row, col + this.op.count);
   }
 
   currentLine() {
@@ -88,8 +98,77 @@ export default class Surface {
     this.editor.updateUI();
   }
 
-  inAnyVisualMode = () => {
-    return false;
+  handleInputModeSwitch(op) {
+    switch (op.operation) {
+      case 'i':
+        this.inputAtCaret();
+        break;
+      case 'I':
+        this.inputAtLineHead();
+        break;
+      case 'a':
+        this.inputAfterCaret();
+        break;
+      case 'A':
+        this.inputAtLineEnd();
+        break;
+      case 's':
+        this.deleteCharAndInput();
+        break;
+      case 'o':
+      case 'O':
+        // TODO
+        break;
+      default:
+        break;
+    }
+  }
+
+  handleHistory(op) {
+    switch (op.operation) {
+      case 'u':
+        loop(op.count, this.history.undo);
+        break;
+      case '<c-r>':
+        loop(op.count, this.history.redo);
+        break;
+      case '<c-m>':
+        loop(op.count, this.editor.replay);
+        break;
+      default:
+        break;
+    }
+  }
+
+  handleRecord(op) {
+    if (op.target === 'q') {
+      this.editor.startRecord();
+    } else {
+      this.editor.finishRecord();
+    }
+  }
+
+  handleVisual(op) {
+    const selection = this.selection;
+    switch (op.operation) {
+      case 'v':
+        selection.toggle(Visual.Char);
+        break;
+      case 'V':
+        selection.toggle(Visual.Line);
+        break;
+      case '<c-v>':
+        selection.toggle(Visual.Block);
+        break;
+      default:
+        break;
+    }
+  }
+
+  handleYank() {
+    this.paste.yank();
+    this.selection.off();
+    this.updateUI();
   }
 
   inputAtCaret = () => {
@@ -137,6 +216,27 @@ export default class Surface {
     });
   }
 
+  pasteAfter() {
+    this._paste(false);
+  }
+
+  pasteBefore() {
+    this._paste(true);
+  }
+
+  _paste(before) {
+    switch (this.paste.type) {
+      case Visual.Char:
+        this.paste.pasteChars(before);
+        break;
+      case Visual.Line:
+        this.paste.pasteLines(before);
+        break;
+      default:
+        break;
+    }
+  }
+
   _switchToInputMode = (props) => {
     props = props || {};
     const inputChange = this.inputChange;
@@ -168,7 +268,7 @@ export default class Surface {
         this.switchToNormalMode();
         break;
       case Mode.Normal:
-        this.selection.toggle(false);
+        this.selection.off();
         break;
       default:
         break;
@@ -329,54 +429,34 @@ export default class Surface {
   execNormalOperation = (op) => {
     switch (op.operation) {
       case 'x':
-        this.normalDeleteChar();
+        this.normalXDelete();
         break;
       case 'd':
         this.deleteSelectedText(true);
         break;
-      case 'i':
-        this.inputAtCaret();
+      case 'y':
+        this.handleYank();
         break;
-      case 'I':
-        this.inputAtLineHead();
+      case 'p':
+        this.pasteAfter();
         break;
-      case 'a':
-        this.inputAfterCaret();
-        break;
-      case 'A':
-        this.inputAtLineEnd();
+      case 'P':
+        this.pasteBefore();
         break;
       case 's':
-        this.deleteCharAndInput();
+      case 'i': case 'I':
+      case 'a': case 'A':
+      case 'o': case 'O':
+        this.handleInputModeSwitch(op);
         break;
-      case 'o':
-      case 'O':
-        // TODO
-        break;
-      case 'u':
-        loop(op.count, this.history.undo);
-        break;
-      case '<c-r>':
-        loop(op.count, this.history.redo);
-        break;
-      case '<c-m>':
-        loop(op.count, this.editor.replay);
+      case 'u': case '<c-r>': case '<c-m>':
+        this.handleHistory(op);
         break;
       case 'q':
-        if (op.target === 'q') {
-          this.editor.startRecord();
-        } else {
-          this.editor.finishRecord();
-        }
+        this.handleRecord(op);
         break;
-      case 'v':
-        this.selection.toggle(Visual.Char);
-        break;
-      case 'V':
-        this.selection.toggle(Visual.Line);
-        break;
-      case '<c-v>':
-        this.selection.toggle(Visual.Block);
+      case 'v': case 'V': case '<c-v>':
+        this.handleVisual(op);
         break;
       default:
         break;
@@ -442,7 +522,7 @@ export default class Surface {
 
   blockInsert() {
     const selection = this.selection;
-    selection.toggle(false);
+    selection.off();
     this.insertType = Insert.Block;
     this._switchToInputMode({
       whenInput: () => {
@@ -456,7 +536,7 @@ export default class Surface {
     const inputChange = this.inputChange;
     const text = inputChange.text();
     if (text.indexOf('\n') === -1) {
-      const [left, top, right, bottom] = this.selection.blockRect();
+      const [left, top, _, bottom] = this.selection.blockRect();
       this.history.push({
         squashable: true,
         redo: () => {
@@ -499,8 +579,10 @@ export default class Surface {
         this.history.squash();
         this.history.squashOn = false;
         break;
+      default:
+        break;
     }
-    selection.toggle(false);
+    selection.off();
   }
 
   updateUI = () => {

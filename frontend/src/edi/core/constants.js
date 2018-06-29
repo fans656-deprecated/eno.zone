@@ -1,21 +1,21 @@
 export const Mode = {
-  Input: 'input',
-  Normal: 'normal',
-  Command: 'command',
+  Input: 'Input',
+  Normal: 'Normal',
+  Command: 'Command',
 };
 
 export const Feed = {
-  Handled: 'handled',
-  Continue: 'continue',
+  Handled: 'Handled',
+  Continue: 'Continue',
 };
 
 export const Visual = {
-  Char: 'char',
-  Line: 'line',
-  Block: 'block',
+  Char: 'Char',
+  Line: 'Line',
+  Block: 'Block',
 };
 
 export const Insert = {
-  Default: 'default',
-  Block: 'block',
+  Default: 'Default',
+  Block: 'Block',
 };

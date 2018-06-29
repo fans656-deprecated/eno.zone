@@ -12,8 +12,7 @@ export default class Selection {
 
   toggle(type) {
     if (this.active) {
-      this.select(false);
-      this.active = false;
+      this.off();
     } else {
       this.type = type || Visual.Char;
       this.anchor = this.point = this.surface.caret.rowcol();
@@ -21,6 +20,11 @@ export default class Selection {
       this.active = true;
     }
     this.surface.updateUI();
+  }
+
+  off() {
+    this.select(false);
+    this.active = false;
   }
 
   updateCaret(caret) {
@@ -60,6 +64,13 @@ export default class Selection {
   headtailRows() {
     const [head, tail] = this.headtail();
     return [head[0], tail[0]];
+  }
+
+  range() {
+    const [head, tail] = this.headtail();
+    const [firstRow, firstCol] = head;
+    const [lastRow, lastCol] = tail;
+    return [firstRow, firstCol, lastRow, lastCol + 1];
   }
 
   select(selected) {

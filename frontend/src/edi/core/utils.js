@@ -1,5 +1,9 @@
 export const noop = () => null
 
+export function warn(text) {
+  console.log('WARNING:', text);
+}
+
 export function defaultIfNull(val, def) {
   return val == null ? def : val;
 }
