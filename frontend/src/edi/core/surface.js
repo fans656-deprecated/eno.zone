@@ -6,7 +6,7 @@ import Selection from './selection';
 import InputChange from './inputchange';
 import Paste from './paste';
 import { Mode, Feed, Visual, Insert } from './constants';
-import { loop, defaultIfNull } from './utils';
+import { loop, defaultIfNull, warn } from './utils';
 
 export default class Surface {
   constructor(editor, props) {
@@ -186,15 +186,19 @@ export default class Surface {
 
   handleChangeThenInput() {
     if (this.hasSelection()) {
-      this.deleteSelectedText(true);
-    } else {
-      const op = this.op;
-      switch (op.target) {
-        case 'c':
-          this.deleteLine(op.count);
-          break;
-      }
+      warn('use s instead');
+      return;
     }
+    this.history.squashOn = true;
+    const op = this.op;
+    switch (op.target) {
+      case 'c':
+        this.caret.setCol(0);
+        this.deleteLine(op.count);
+        this.inputAbove();
+        break;
+    }
+    this.history.squashOn = false;
     this.switchToInputMode();
   }
 

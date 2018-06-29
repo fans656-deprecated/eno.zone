@@ -1,5 +1,4 @@
 `
-cc/dd
 C/D
 
 yw/yiw/..
