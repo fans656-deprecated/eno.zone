@@ -50,14 +50,6 @@ export default class Surface {
     this.content.setText(text);
   }
 
-  normalXDelete() {
-    if (this.selection.active) {
-      this.deleteSelectedText();
-    } else {
-      this.normalDeleteChar();
-    }
-  }
-
   normalDeleteChar() {
     const [row, col] = this.rowcol();
     this.doDeleteText(row, col, row, col + this.op.count);
@@ -112,16 +104,22 @@ export default class Surface {
       case 'A':
         this.inputAtLineEnd();
         break;
+      case 'o':
+        this.inputBelow();
+        break;
+      case 'O':
+        this.inputAbove();
+        break;
       case 's':
         this.deleteCharAndInput();
-        break;
-      case 'o':
-      case 'O':
-        // TODO
         break;
       default:
         break;
     }
+  }
+
+  handleChangeThenInput(op) {
+    console.log(op);
   }
 
   handleHistory(op) {
@@ -165,10 +163,67 @@ export default class Surface {
     }
   }
 
+  handleNormalXDelete() {
+    if (this.selection.active) {
+      this.deleteSelectedText();
+    } else {
+      this.normalDeleteChar();
+    }
+  }
+
+  handleNormalDDelete() {
+    if (this.hasSelection()) {
+      this.deleteSelectedText(true);
+    } else {
+      const op = this.op;
+      switch (op.target) {
+        case 'd':
+          this.deleteLine(op.count);
+          break;
+      }
+    }
+  }
+
+  handleChangeThenInput() {
+    if (this.hasSelection()) {
+      this.deleteSelectedText(true);
+    } else {
+      const op = this.op;
+      switch (op.target) {
+        case 'c':
+          this.deleteLine(op.count);
+          break;
+      }
+    }
+    this.switchToInputMode();
+  }
+
   handleYank() {
     this.paste.yank();
     this.selection.off();
     this.updateUI();
+  }
+
+  deleteLine(repeatCount) {
+    const [row, col] = this.rowcol();
+    const isLastRow = row === this.content.lastRow();
+    const textRow = row + isLastRow;
+    const lines = this.content.lines.slice(textRow, textRow + repeatCount);
+    const text = lines.map(line => line._text).join('\n');
+    this.history.push({
+      redo: () => {
+        this.content.deleteLine(row, repeatCount);
+        this.caret.setRowCol(row, col);
+      },
+      undo: () => {
+        if (isLastRow) {
+          this.content.insertText(row + 1, null, '\n' + text);
+        } else {
+          this.content.insertText(row, 0, text + '\n');
+        }
+        this.caret.setRowCol(row, col);
+      }
+    });
   }
 
   inputAtCaret = () => {
@@ -201,6 +256,40 @@ export default class Surface {
   inputAtLineEnd = () => {
     this._switchToInputMode({
       whenInput: this.caret.toLastCol,
+    });
+  }
+
+  inputAbove() {
+    this._switchToInputMode({
+      beforeInput: () => {
+        const row = this.caret.row;
+        this.history.push({
+          redo: () => {
+            this.content.insertText(row, 0, '\n');
+          },
+          undo: () => {
+            this.content.deleteLine(row);
+          }
+        });
+      }
+    });
+  }
+
+  inputBelow() {
+    this._switchToInputMode({
+      beforeInput: () => {
+        const row = this.caret.row;
+        this.history.push({
+          redo: () => {
+            this.content.insertText(row, null, '\n');
+            this.caret.incRow(1);
+          },
+          undo: () => {
+            this.content.deleteLine(row + 1);
+            this.caret.setRow(row);
+          }
+        });
+      }
     });
   }
 
@@ -429,10 +518,13 @@ export default class Surface {
   execNormalOperation = (op) => {
     switch (op.operation) {
       case 'x':
-        this.normalXDelete();
+        this.handleNormalXDelete();
         break;
       case 'd':
-        this.deleteSelectedText(true);
+        this.handleNormalDDelete();
+        break;
+      case 'c':
+        this.handleChangeThenInput(op);
         break;
       case 'y':
         this.handleYank();

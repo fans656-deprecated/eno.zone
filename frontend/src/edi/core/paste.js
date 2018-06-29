@@ -56,10 +56,8 @@ export default class Paste {
     const op = this.surface.op;
     const [row, col] = this.surface.rowcol();
     switch (op.target) {
-      case 'y':
+      case 'y': case 'c': case 'd':
         return [row, 0, row, null];
-      case 'c': case 'd':
-        break;
       case 'w':
         break;
       default:
