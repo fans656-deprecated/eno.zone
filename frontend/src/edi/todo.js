@@ -1,6 +1,4 @@
 `
-C/D
-
 yw/yiw/..
 diw/di(
 

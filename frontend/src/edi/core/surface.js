@@ -176,10 +176,21 @@ export default class Surface {
       this.deleteSelectedText(true);
     } else {
       const op = this.op;
-      switch (op.target) {
-        case 'd':
-          this.deleteLine(op.count);
-          break;
+      const [row, col] = this.rowcol();
+      const text = this.content.text(row, col, row, null);
+      if (op.operation === 'D') {
+        this.history.push({
+          redo: () => {
+            this.content.deleteText(row, col, row, null);
+            this.caret.setRowCol(row, col);
+          },
+          undo: () => {
+            this.content.insertText(row, col, text);
+            this.caret.setRowCol(row, col);
+          }
+        });
+      } else if (op.target === 'd') {
+        this.deleteLine(op.count);
       }
     }
   }
@@ -191,15 +202,30 @@ export default class Surface {
     }
     this.history.squashOn = true;
     const op = this.op;
-    switch (op.target) {
-      case 'c':
-        this.caret.setCol(0);
-        this.deleteLine(op.count);
-        this.inputAbove();
-        break;
+    if (op.operation === 'C') {
+      const [row, col] = this.rowcol();
+      const text = this.content.text(row, col, row, null);
+      this.history.push({
+        redo: () => {
+          this.content.deleteText(row, col, row, null);
+          this.caret.incCol(1, true);
+        },
+        undo: () => {
+          this.content.insertText(row, col, text);
+        }
+      });
+      this._switchToInputMode({
+        whenInput: () => {
+          this.caret.incCol(1, false);
+        }
+      });
+    } else if (op.target === 'c') {
+      this.caret.setCol(0);
+      this.deleteLine(op.count);
+      this.inputAbove();
+      this.switchToInputMode();
     }
     this.history.squashOn = false;
-    this.switchToInputMode();
   }
 
   handleYank() {
@@ -525,9 +551,11 @@ export default class Surface {
         this.handleNormalXDelete();
         break;
       case 'd':
+      case 'D':
         this.handleNormalDDelete();
         break;
       case 'c':
+      case 'C':
         this.handleChangeThenInput(op);
         break;
       case 'y':
