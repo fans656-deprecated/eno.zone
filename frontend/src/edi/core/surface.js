@@ -474,6 +474,9 @@ export default class Surface {
       case '<c-e>':
         this.inputModeDel();
         return Feed.Handled;
+      case '<c-u>':
+        this.inputModeBackspaceToHead();
+        return Feed.Handled;
       case '<c-j>':
         // TODO: input without break current line
         return Feed.Handled;
@@ -523,6 +526,15 @@ export default class Surface {
     } else {
       const ch = content.deleteText(row, col, row, col + 1);
       inputChange.pushDel(ch);
+    }
+    this.updateUI();
+  }
+
+  inputModeBackspaceToHead() {
+    const [row, col] = this.rowcol();
+    const text = this.content.text(row, 0, row, col);
+    for (const _ of text) {
+      this.feedKey('<bs>');
     }
     this.updateUI();
   }
