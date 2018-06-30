@@ -1,11 +1,18 @@
 const text = String.raw`
-import ****
-!!!!React from 'react';
+me 'foo' that
+me (
+paren paren
+) that
+"paren paren" that
+[paren paren] that
+{paren paren} that
+`.trim()
++ '\n`paren paren` that';
+
+`
 import $ from 'jquery';
 import Content from './content';
 import Surface from './surface';
-`.trim();
-`
 export default class View extends React.Component {
 and etc etc, like void
   constructor(props) {

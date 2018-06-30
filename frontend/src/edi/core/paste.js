@@ -57,7 +57,7 @@ export default class Paste {
       case 'y': case 'c': case 'd':
         return [[row, 0, row, null], Visual.Line];
       default:
-        const [head, tail] = this.surface.getNavigatedRange(op);
+        const [head, tail] = this.surface.getOperationRange(op);
         let type = Visual.Char;
         if (op.target === 'g' || op.move === 'G') {
           type = Visual.Line;

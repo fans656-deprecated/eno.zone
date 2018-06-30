@@ -28,7 +28,7 @@ export default class Line {
 
   deleteText = (beg, end) => {
     [beg, end] = this.normalizedRange(beg, end);
-    if (beg === end) return;
+    if (beg >= end) return;
     const [pre, mid, aft] = split(this.text(), beg, end);
     this._text = pre + aft;
     this.spans.deleteText(beg, end);
@@ -73,7 +73,7 @@ export default class Line {
     beg = beg == null ? 0 : beg;
     end = end == null ? this._text.length : end;
     return [
-      this.normalizedCol(beg),
+      this.normalizedCol(beg, true),  // beg at end
       this.normalizedCol(end, true),
     ];
   }

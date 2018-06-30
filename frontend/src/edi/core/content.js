@@ -41,6 +41,34 @@ export default class Content {
     }
   }
 
+  findBefore(row, col, pattern) {
+    const text = this.line(row)._text.substring(0, col + 1);
+    const foundCol = text.lastIndexOf(pattern);
+    if (foundCol !== -1) {
+      return [row, foundCol];
+    }
+    for (let i = row - 1; i >= 0; --i) {
+      const foundCol = this.line(i)._text.lastIndexOf(pattern);
+      if (foundCol === -1) continue;
+      return [i, foundCol];
+    }
+    return [null, null];
+  }
+
+  findAfter(row, col, pattern) {
+    const text = this.line(row)._text.substring(col);
+    const foundCol = text.indexOf(pattern);
+    if (foundCol !== -1) {
+      return [row, col + foundCol];
+    }
+    for (let i = row + 1; i <= this.rows(); ++i) {
+      const foundCol = this.line(i)._text.indexOf(pattern);
+      if (foundCol === -1) continue;
+      return [i, foundCol];
+    }
+    return [null, null];
+  }
+
   setText = (text) => {
     const texts = text.split('\n');
     if (texts.length === 0) {

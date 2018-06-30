@@ -5,6 +5,7 @@ import History from './history';
 import Selection from './selection';
 import InputChange from './inputchange';
 import Paste from './paste';
+import Operand from './operand';
 import { Mode, Feed, Visual, Insert } from './constants';
 import { loop, defaultIfNull, warn, caretBefore } from './utils';
 
@@ -267,7 +268,8 @@ export default class Surface {
   }
 
   deleteNavigation(op, props) {
-    const [head, tail] = this.getNavigatedRange(op, props);
+    const [head, tail] = this.getOperationRange(op, props);
+    if (head == null) return;
     const text = this.content.text(...head, ...tail);
     const [row, col] = this.rowcol();
     this.history.push({
@@ -773,6 +775,14 @@ export default class Surface {
     this.editor.updateUI();
   }
 
+  getOperationRange(op, props) {
+    if (op.move === 'i' || op.move === 'a') {
+      return this.getOperandRange(op, props);
+    } else {
+      return this.getNavigatedRange(op, props);
+    }
+  }
+
   getNavigatedRange(op, props) {
     props = props || {};
 
@@ -817,6 +827,25 @@ export default class Surface {
     }
 
     return [head, tail];
+  }
+
+  getOperandRange(op, props) {
+    const operand = new Operand(this, op);
+    if (!operand.found) {
+      return [null, null];
+    }
+    if (op.move === 'i') {
+      return [
+        [operand.firstRow, operand.beg],
+        [operand.lastRow, operand.end],
+      ];
+    } else if (op.move === 'a') {
+      return [
+        [operand.firstRow, operand.outBeg],
+        [operand.lastRow, operand.outEnd],
+      ];
+    }
+    return [this.rowcol(), this.rowcol()];
   }
 
   _highlight = (match) => {
