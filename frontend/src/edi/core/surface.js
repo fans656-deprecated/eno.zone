@@ -447,7 +447,7 @@ export default class Surface {
     });
   }
 
-  escape = () => {
+  escape() {
     if (this.editor.escape()) {
       return;
     }
