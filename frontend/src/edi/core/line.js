@@ -105,6 +105,21 @@ export default class Line {
     }
     return words;
   }
+
+  findAll(src) {
+    const re = new RegExp(src, 'gi');
+    const text = this._text;
+    const founds = [];
+    while (true) {
+      const match = re.exec(text);
+      if (!match) break;
+      const length = match[0].length;
+      const beg = match.index;
+      const end = beg + length;
+      founds.push([beg, end, text.substring(beg, end)]);
+    }
+    return founds;
+  }
 }
 
 const _defaultAttrs = () => {

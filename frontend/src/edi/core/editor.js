@@ -52,6 +52,9 @@ export default class Editor {
   }
 
   prepareCommand = (text) => {
+    if (text === ':' && this.contentSurface.hasSelection()) {
+      text = ":'<,'>";
+    }
     this.switchToCommandMode(text);
     return Feed.Handled;
   }
@@ -74,9 +77,9 @@ export default class Editor {
     this.mode = Mode.Command;
     this.contentSurface.saveCaret();
     this.commandSurface.setText(text);
-    this.commandSurface.caret.toLastCol();
     this.activateSurface(this.commandSurface);
     this.updateUI();
+    this.commandSurface.caret.toLastCol();
   }
 
   activateSurface = (surface) => {
@@ -129,10 +132,52 @@ export default class Editor {
   }
 
   _executeCommand(cmd) {
-    if (cmd.startsWith('/')) {
-      this.contentSurface.search(cmd.substring(1));
-    } else if (cmd.startsWith('?')) {
-      this.contentSurface.search(cmd.substring(1), true);
+    if (cmd.length === 0) return;
+    const type = cmd[0];
+    cmd = cmd.substring(1);
+    switch (type) {
+      case '/':
+        this.contentSurface.search(cmd);
+        break;
+      case '?':
+        this.contentSurface.search(cmd, true);
+        break;
+      case ':':
+        this._executeCommaCommand(cmd);
+        break;
+      default:
+        break;
+    }
+  }
+
+  _executeCommaCommand(cmd) {
+    console.log('_executeCommaCommand', cmd);
+    switch (cmd) {
+      case 'w':
+        console.log('write');
+        return;
+      case 'q':
+        console.log('quite');
+        return;
+      default:
+        break;
+    }
+    cmd = parseCommaCommand(cmd);
+    if (!cmd.valid) return;
+    switch (cmd.op) {
+      case 's':
+        this._executeReplace(cmd);
+        return;
+      default:
+        break;
+    }
+  }
+
+  _executeReplace(cmd) {
+    if (cmd.selection) {
+    } else {
+      const {src, dst} = cmd;
+      this.contentSurface.replace(src, dst);
     }
   }
 
@@ -140,3 +185,48 @@ export default class Editor {
     this.surfaces.forEach(surface => surface.history.squash());
   }
 }
+
+function parseCommaCommand(cmd) {
+  const ret = {};
+  if (cmd.startsWith(SELECTION_PREFIX)) {
+    ret.selection = true;
+    cmd = cmd.substring(SELECTION_PREFIX.length);
+  } else {
+    ret.selection = false;
+  }
+  if (cmd.startsWith(GLOBAL_PREFIX)) {
+    ret.global = true;
+    cmd = cmd.substring(GLOBAL_PREFIX.length);
+  } else {
+    ret.global = false;
+  }
+  if (cmd.length) {
+    const op = cmd[0];
+    switch (op) {
+      case 's':
+        ret.op = 's';
+        parseReplaceCommand(ret, cmd.substring(1));
+        break;
+    }
+  }
+  ret.valid = true;
+  return ret;
+}
+
+function parseReplaceCommand(ret, cmd) {
+  if (cmd.length === 0) return;
+  const sep = cmd[0];
+  const parts = cmd.substring(1).split(sep);
+  let src, dst, global;
+  if (parts.length === 2) {
+    ([src, dst] = parts);
+  } else if (parts.length === 3) {
+    ([src, dst, global] = parts);
+  }
+  ret.src = src;
+  ret.dst = dst;
+  ret.global = global === 'g';
+}
+
+const SELECTION_PREFIX = "'<,'>";
+const GLOBAL_PREFIX = '%';

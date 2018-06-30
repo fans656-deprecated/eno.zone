@@ -187,6 +187,19 @@ export default class Content {
     return searchAll(pattern, lines);
   }
 
+  findAll(src) {
+    const founds = [];
+    const lines = this.lines;
+    for (let i = 0; i < lines.length; ++i) {
+      const line = lines[i];
+      const lineFounds = line.findAll(src);
+      if (lineFounds.length) {
+        founds.push([i, lineFounds]);
+      }
+    }
+    return founds;
+  }
+
   select(firstRow, firstCol, lastRow, lastCol, selected) {
     if (firstRow === lastRow) {
       this.line(firstRow).select(firstCol, lastCol, selected);

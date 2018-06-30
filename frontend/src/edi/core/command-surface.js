@@ -37,14 +37,18 @@ export default class CommandSurface extends Surface {
       case '<c-p>':
         if (!this.history.empty()) {
           this.content.setText(this.history.prev());
-          this.caret.ensureValid();
+          this.caret.toLastCol();
         }
         return Feed.Handled;
       case '<c-m>':
         if (!this.history.empty()) {
           this.content.setText(this.history.next());
-          this.caret.ensureValid();
+          this.caret.toLastCol();
         }
+        return Feed.Handled;
+      case '<c-u>':
+        this.content.setText(this.content.text()[0]);
+        this.caret.toLastCol();
         return Feed.Handled;
       default:
         break;

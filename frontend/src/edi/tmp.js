@@ -1,5 +1,5 @@
 const text = String.raw`
-me 'foo' that
+me 'food' feard that feed
 me (
 paren paren
 ) that

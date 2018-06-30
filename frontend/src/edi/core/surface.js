@@ -836,7 +836,7 @@ export default class Surface {
     let tailRowDiff = 0;
     let tailColDiff = 0;
 
-    if (op.move === 'G' || op.move === 'g' && op.target === 'g') {
+    if (op.move === 'G' || (op.move === 'g' && op.target === 'g')) {
       tailRowDiff = 1;
     } else if (op.move === 'L') {
       tailColDiff = 1;
@@ -932,14 +932,14 @@ export default class Surface {
       matchCol = match.begCol;
       if (reversed) {
         if (matchRow <= row) {
-          if (matchRow < row || matchRow === row && matchCol <= col) {
+          if (matchRow < row || (matchRow === row && matchCol <= col)) {
             found = true;
             break;
           }
         }
       } else {
         if (matchRow >= row) {
-          if (matchRow > row || matchRow === row && matchCol >= col) {
+          if (matchRow > row || (matchRow === row && matchCol >= col)) {
             found = true;
             break;
           }
@@ -974,6 +974,35 @@ export default class Surface {
     for (const match of this.lastSearch.matches) {
       this._highlight(match, false);
     }
+  }
+
+  replace(src, dst) {
+    const founds = this.content.findAll(src);
+    this.history.push({
+      redo: () => {
+        for (const [row, lineFounds, _] of founds) {
+          let col = 0;
+          const line = this.content.line(row);
+          for (const [beg, end] of lineFounds) {
+            line.deleteText(beg + col, end + col);
+            line.insertText(beg + col, dst);
+            col -= end - beg;
+            col += dst.length;
+          }
+        }
+        this.caret.ensureValid();
+      },
+      undo: () => {
+        for (const [row, lineFounds] of founds) {
+          const line = this.content.line(row);
+          for (const [beg, end, text] of lineFounds) {
+            line.deleteText(beg, beg + dst.length);
+            line.insertText(beg, text);
+          }
+        }
+        this.caret.ensureValid();
+      }
+    });
   }
 
   _highlight = (match, highlighted) => {
