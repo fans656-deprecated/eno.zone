@@ -14,11 +14,9 @@ export default class Paste {
     if (surface.hasSelection()) {
       this.yankSelectedText();
     } else {
-      const range = this.getOperationTargetRange();
-      if (range) {
-        const text = content.text(...range);
-        this.set(text, Visual.Line);
-      }
+      const [range, type] = this.getOperationTargetRange();
+      const text = content.text(...range);
+      this.set(text, type);
     }
   }
 
@@ -57,11 +55,14 @@ export default class Paste {
     const [row, col] = this.surface.rowcol();
     switch (op.target) {
       case 'y': case 'c': case 'd':
-        return [row, 0, row, null];
-      case 'w':
-        break;
+        return [[row, 0, row, null], Visual.Line];
       default:
-        break;
+        const [head, tail] = this.surface.getNavigatedRange(op);
+        let type = Visual.Char;
+        if (op.target === 'g' || op.move === 'G') {
+          type = Visual.Line;
+        }
+        return [[...head, ...tail], type];
     }
   }
 
@@ -110,7 +111,7 @@ export default class Paste {
     const lines = text.split('\n');
     const rows = lines.length;
     const addedRows = rows - 1;
-    const insertCol = before ? col : col + 1;
+    const insertCol = (before || col === 0) ? col : col + 1;
     const lastLine = lines[lines.length - 1];
     const firstRow = row;
     const lastRow = firstRow + addedRows;

@@ -1,6 +1,5 @@
 `
-yw/yiw/..
-diw/di(
+yiw/diw/di(
 
 search
 replace

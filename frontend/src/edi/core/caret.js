@@ -14,6 +14,10 @@ export default class Caret {
     return [this.row, this.col];
   }
 
+  atTail() {
+    return this.col === this.content.line(this.row).lastCol();
+  }
+
   toFirstRow = () => {
     this.setRow(0);
   }
@@ -137,7 +141,10 @@ export default class Caret {
   }
 
   setCol = (col, forceHint, noUpdate) => {
-    this.col = col = this.normalizedCol(col);
+    if (!noUpdate) {  // s at tail
+      col = this.normalizedCol(col);
+    }
+    this.col = col;
     this.hintCol = forceHint ? col : Math.max(col, this.hintCol);
     if (this.selection.active) {
       this.selection.updateCaret(this);
@@ -155,6 +162,11 @@ export default class Caret {
       this.updateUI();
     }
     return this;
+  }
+
+  ensureValid() {
+    this.setRow(this.row);
+    this.setCol(this.col);
   }
 
   normalizedRow = (row) => {

@@ -6,7 +6,7 @@ import Selection from './selection';
 import InputChange from './inputchange';
 import Paste from './paste';
 import { Mode, Feed, Visual, Insert } from './constants';
-import { loop, defaultIfNull, warn } from './utils';
+import { loop, defaultIfNull, warn, caretBefore } from './utils';
 
 export default class Surface {
   constructor(editor, props) {
@@ -118,10 +118,6 @@ export default class Surface {
     }
   }
 
-  handleChangeThenInput(op) {
-    console.log(op);
-  }
-
   handleHistory(op) {
     switch (op.operation) {
       case 'u':
@@ -176,33 +172,25 @@ export default class Surface {
       this.deleteSelectedText(true);
     } else {
       const op = this.op;
-      const [row, col] = this.rowcol();
-      const text = this.content.text(row, col, row, null);
-      if (op.operation === 'D') {
-        this.history.push({
-          redo: () => {
-            this.content.deleteText(row, col, row, null);
-            this.caret.setRowCol(row, col);
-          },
-          undo: () => {
-            this.content.insertText(row, col, text);
-            this.caret.setRowCol(row, col);
-          }
-        });
-      } else if (op.target === 'd') {
+      if (op.operation === 'D') {  // D
+        this.deleteLineTillEnd();
+      } else if (op.target === 'd') {  // dd
         this.deleteLine(op.count);
+      } else if (op.move || op.target) {
+        this.deleteNavigation(op);
+        this.caret.ensureValid();
       }
     }
   }
 
   handleChangeThenInput() {
     if (this.hasSelection()) {
-      warn('use s instead');
+      this.deleteCharAndInput();
       return;
     }
     this.history.squashOn = true;
     const op = this.op;
-    if (op.operation === 'C') {
+    if (op.operation === 'C') {  // C
       const [row, col] = this.rowcol();
       const text = this.content.text(row, col, row, null);
       this.history.push({
@@ -219,19 +207,26 @@ export default class Surface {
           this.caret.incCol(1, false);
         }
       });
-    } else if (op.target === 'c') {
+    } else if (op.target === 'c') {  // cc
       this.caret.setCol(0);
       this.deleteLine(op.count);
       this.inputAbove();
-      this.switchToInputMode();
+      this._switchToInputMode();
+    } else if (op.move || op.target) {
+      this.history.squashOn = true;
+      this.deleteNavigation(op, {changing: true});
+      this.history.squashOn = false;
+      this._switchToInputMode();
     }
     this.history.squashOn = false;
   }
 
   handleYank() {
     this.paste.yank();
-    this.selection.off();
-    this.updateUI();
+    if (this.hasSelection()) {
+      this.selection.off();
+      this.updateUI();
+    }
   }
 
   deleteLine(repeatCount) {
@@ -251,6 +246,37 @@ export default class Surface {
         } else {
           this.content.insertText(row, 0, text + '\n');
         }
+        this.caret.setRowCol(row, col);
+      }
+    });
+  }
+
+  deleteLineTillEnd() {
+    const [row, col] = this.rowcol();
+    const text = this.content.text(row, col, row, null);
+    this.history.push({
+      redo: () => {
+        this.content.deleteText(row, col, row, null);
+        this.caret.setRowCol(row, col);
+      },
+      undo: () => {
+        this.content.insertText(row, col, text);
+        this.caret.setRowCol(row, col);
+      }
+    });
+  }
+
+  deleteNavigation(op, props) {
+    const [head, tail] = this.getNavigatedRange(op, props);
+    const text = this.content.text(...head, ...tail);
+    const [row, col] = this.rowcol();
+    this.history.push({
+      redo: () => {
+        this.content.deleteText(...head, ...tail);
+        this.caret.setRowCol(...head);
+      },
+      undo: () => {
+        this.content.insertText(...head, text);
         this.caret.setRowCol(row, col);
       }
     });
@@ -326,10 +352,13 @@ export default class Surface {
   deleteCharAndInput() {
     this._switchToInputMode({
       beforeInput: () => {
-        if (this.selection.active) {
+        if (this.hasSelection()) {
           this.deleteSelectedText(true);
         } else {
           this.normalDeleteChar();
+          if (this.caret.atTail()) {
+            this.caret.incCol(1, false);
+          }
         }
       }
     });
@@ -540,6 +569,7 @@ export default class Surface {
   }
 
   feedText(text) {
+    if (!this.isIn(Mode.Input)) return;
     if (text.length) {
       this.inputModeInsert(text);
     }
@@ -549,10 +579,8 @@ export default class Surface {
     this.op = op;
     if (op.operation) {
       this.execNormalOperation(op);
-    } else if (op.move) {
-      this.execNormalMove(op);
-    } else if (op.target) {
-      this.execNormalTarget(op);
+    } else if (op.move || op.target) {
+      this.execNormalNavigation(op);
     }
     this.op = null;
   }
@@ -596,6 +624,14 @@ export default class Surface {
         break;
       default:
         break;
+    }
+  }
+
+  execNormalNavigation(op) {
+    if (op.move) {
+      this.execNormalMove(op);
+    } else if (op.target) {
+      this.execNormalTarget(op);
     }
   }
 
@@ -735,6 +771,52 @@ export default class Surface {
       this._highlight(match);
     }
     this.editor.updateUI();
+  }
+
+  getNavigatedRange(op, props) {
+    props = props || {};
+
+    let tailRowDiff = 0;
+    let tailColDiff = 0;
+
+    if (op.move === 'G' || op.move === 'g' && op.target === 'g') {
+      tailRowDiff = 1;
+    } else if (op.move === 'L') {
+      tailColDiff = 1;
+    }
+
+    if (!op.move && (op.target === 'w' || op.target === 'e') || props.changing) {
+      op.target = 'e';
+      tailColDiff = 1;
+    }
+    if (this.caret.atTail() && (op.target === 'w' || op.target === 'e')) {
+      op = null;
+    }
+
+    const anchor = this.rowcol();
+    if (op) {
+      this.execNormalNavigation(op);
+    }
+    const point = this.rowcol();
+
+    this.caret.setRowCol(...anchor);
+    let head, tail;
+    if (caretBefore(...anchor, ...point)) {
+      head = anchor;
+      tail = point;
+    } else {
+      head = point;
+      tail = anchor;
+    }
+
+    if (tailRowDiff) {
+      tail[0] += tailRowDiff;
+    }
+    if (tailColDiff) {
+      tail[1] += tailColDiff;
+    }
+
+    return [head, tail];
   }
 
   _highlight = (match) => {

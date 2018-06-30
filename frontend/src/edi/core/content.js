@@ -109,6 +109,9 @@ export default class Content {
         this.joinLines(firstRow, 1);
       }
     }
+    if (this.lines.length === 0) {
+      this.setText('');
+    }
     return deletedText;
   }
 
