@@ -109,6 +109,7 @@ export default class Normal {
       case 'v': case 'V': case '<c-v>':
       case '<c-r>': case '<c-k>':
       case '\\':
+      case 'n': case 'N':
         this.operation = key;
         this.execute();
         return Feed.Handled;

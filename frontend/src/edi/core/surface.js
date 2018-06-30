@@ -25,6 +25,7 @@ export default class Surface {
     this.active = false;
     this.op = null;
     this.lastOp = null;  // used in search & find in line
+    this.savedRowCol = null;  // for search caret restore
   }
 
   map = (key, func) => {
@@ -517,7 +518,7 @@ export default class Surface {
     this.history.squash();
   }
 
-  feedKey = (key) => {
+  feedKey(key) {
     switch (key) {
       case '<c-k>':
         this.escape();
@@ -532,10 +533,14 @@ export default class Surface {
     }
   }
 
-  handleInputKeyFeed = (key) => {
+  handleInputKeyFeed(key) {
     switch (key) {
       case '<cr>':
       case '<c-m>':
+        this.inputModeInsert('\n');
+        return Feed.Handled;
+      case '<c-j>':
+        this.caret.toLastCol();
         this.inputModeInsert('\n');
         return Feed.Handled;
       case '<bs>':
@@ -653,6 +658,12 @@ export default class Surface {
         break;
       case '\\':
         this.findInLine(this.lastOp);
+        break;
+      case 'n':
+        this.searchNext();
+        break;
+      case 'N':
+        this.searchNext(true);
         break;
       case 's':
       case 'i': case 'I':
@@ -811,18 +822,6 @@ export default class Surface {
     this.editor.updateUI();
   }
 
-  search = (pattern) => {
-    console.log('search', '|' + pattern + '|');
-    if (pattern.length === 0) {
-      return;
-    }
-    const matches = this.content.search(pattern);
-    for (const match of matches) {
-      this._highlight(match);
-    }
-    this.editor.updateUI();
-  }
-
   getOperationRange(op, props) {
     if (op.move === 'i' || op.move === 'a') {
       return this.getOperandRange(op, props);
@@ -898,7 +897,87 @@ export default class Surface {
     return [this.rowcol(), this.rowcol()];
   }
 
-  _highlight = (match) => {
-    this.content.line(match.row).highlight(match.begCol, match.endCol);
+  saveCaret() {
+    this.savedRowCol = this.caret.rowcol();
+  }
+
+  restoreCaret() {
+    this.caret.setRowCol(...this.savedRowCol);
+  }
+
+  search = (pattern, reversed) => {
+    this.clearHighlights();
+    if (pattern.length === 0) {
+      return;
+    }
+    const matches = this.content.search(pattern);
+    if (matches.length === 0) return;
+    if (reversed) { 
+      matches.reverse();
+    }
+    for (const match of matches) {
+      this._highlight(match);
+    }
+    this.lastSearch = {
+      matches: matches,
+      reversed: reversed,
+    };
+    const [row, col] = this.caret.rowcol();
+    let found = false;
+    let i = 0;
+    let matchRow, matchCol;
+    for (; i < matches.length; ++i) {
+      const match = matches[i];
+      matchRow = match.row;
+      matchCol = match.begCol;
+      if (reversed) {
+        if (matchRow <= row) {
+          if (matchRow < row || matchRow === row && matchCol <= col) {
+            found = true;
+            break;
+          }
+        }
+      } else {
+        if (matchRow >= row) {
+          if (matchRow > row || matchRow === row && matchCol >= col) {
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+    if (found) {
+      this.lastSearch.index = i;
+      this.caret.setRowCol(matchRow, matchCol);
+    } else {
+      this.editor.updateUI();
+    }
+  }
+
+  searchNext(reversed) {
+    const lastSearch = this.lastSearch;
+    if (!lastSearch) return;
+    const matches = lastSearch.matches;
+    let i = lastSearch.index;
+    if (reversed) {
+      i = (i + matches.length - 1) % matches.length;
+    } else {
+      i = (i + 1) % matches.length;
+    }
+    this.lastSearch.index = i;
+    const match = matches[i];
+    this.caret.setRowCol(match.row, match.begCol);
+  }
+
+  clearHighlights() {
+    if (!this.lastSearch) return;
+    for (const match of this.lastSearch.matches) {
+      this._highlight(match, false);
+    }
+  }
+
+  _highlight = (match, highlighted) => {
+    const line = this.content.line(match.row);
+    line.highlight(match.begCol, match.endCol - 1, highlighted);
   }
 }

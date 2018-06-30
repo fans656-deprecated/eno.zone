@@ -72,6 +72,7 @@ export default class Editor {
 
   switchToCommandMode = (text) => {
     this.mode = Mode.Command;
+    this.contentSurface.saveCaret();
     this.commandSurface.setText(text);
     this.commandSurface.caret.toLastCol();
     this.activateSurface(this.commandSurface);
@@ -116,11 +117,22 @@ export default class Editor {
     this._squashHistory();
   }
 
-  onCommandChange = (text) => {
-    if (text.startsWith('/')) {
-      const pattern = text.substring(1);
-      console.log(`about to search |${pattern}|`);
-      //this.contentSurface.search(text.substring(1));
+  onCommandChange = (cmd) => {
+    if (cmd.startsWith('/') || cmd.startsWith('?')) {
+      this._executeCommand(cmd);
+    }
+  }
+
+  executeCommand(cmd) {
+    this._executeCommand(cmd);
+    this.switchToNormalMode();
+  }
+
+  _executeCommand(cmd) {
+    if (cmd.startsWith('/')) {
+      this.contentSurface.search(cmd.substring(1));
+    } else if (cmd.startsWith('?')) {
+      this.contentSurface.search(cmd.substring(1), true);
     }
   }
 
