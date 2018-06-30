@@ -69,6 +69,38 @@ export default class Content {
     return [null, null];
   }
 
+  findInLine(ch, props) {
+    const row = props.row;
+    let col = props.col;
+    let count = props.count;
+    const reverse = props.reverse;
+    const line = this.line(row);
+    let text;
+    if (reverse) {
+      text = line._text.substring(0, col);
+      let foundCol = -1;
+      while (count--) {
+        foundCol = text.lastIndexOf(ch);
+        if (foundCol === -1) {
+          return -1;
+        }
+        text = text.substring(0, foundCol);
+      }
+      return foundCol;
+    } else {
+      text = line._text;
+      let foundCol = -1;
+      while (count--) {
+        foundCol = text.indexOf(ch, col + 1);
+        if (foundCol === -1) {
+          return -1;
+        }
+        col = foundCol;
+      }
+      return foundCol;
+    }
+  }
+
   setText = (text) => {
     const texts = text.split('\n');
     if (texts.length === 0) {

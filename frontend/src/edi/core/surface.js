@@ -24,6 +24,7 @@ export default class Surface {
     this.inputChange = new InputChange(this);
     this.active = false;
     this.op = null;
+    this.lastOp = null;  // used in search & find in line
   }
 
   map = (key, func) => {
@@ -374,6 +375,46 @@ export default class Surface {
     this._paste(true);
   }
 
+  findInLine(op) {
+    const content = this.content;
+    const [row, col] = this.caret.rowcol();
+    op = op || this.op;
+    let foundCol;
+    switch (op.move) {
+      case 'f':
+        foundCol = content.findInLine(op.target, {
+          row: row, 
+          col: col,
+          count: op.count
+        });
+        if (foundCol !== -1) {
+          this.caret.setCol(foundCol);
+        }
+        break;
+      case 'F':
+        foundCol = content.findInLine(op.target, {
+          row: row,
+          col: col,
+          count: op.count,
+          reverse: true,
+        });
+        if (foundCol !== -1) {
+          this.caret.setCol(foundCol);
+        }
+        break;
+      case 't':
+        foundCol = content.findInLine(op.target, {
+          row: row, 
+          col: col,
+          count: op.count
+        });
+        if (foundCol !== -1) {
+          this.caret.setCol(foundCol - 1);
+        }
+        break;
+    }
+  }
+
   _paste(before) {
     switch (this.paste.type) {
       case Visual.Char:
@@ -584,6 +625,7 @@ export default class Surface {
     } else if (op.move || op.target) {
       this.execNormalNavigation(op);
     }
+    this.lastOp = op;
     this.op = null;
   }
 
@@ -608,6 +650,9 @@ export default class Surface {
         break;
       case 'P':
         this.pasteBefore();
+        break;
+      case '\\':
+        this.findInLine(this.lastOp);
         break;
       case 's':
       case 'i': case 'I':
@@ -667,6 +712,9 @@ export default class Surface {
         } else {
           this.caret.setRow(count - 1);
         }
+        break;
+      case 'f': case 'F': case 't':
+        this.findInLine();
         break;
       case 'g': 
         if (op.target === 'g') {
@@ -795,8 +843,10 @@ export default class Surface {
       tailColDiff = 1;
     }
 
-    if (!op.move && (op.target === 'w' || op.target === 'e') || props.changing) {
+    if (!op.move && (op.target === 'w' || op.target === 'e')) {
       op.target = 'e';
+      tailColDiff = 1;
+    } else if (op.move === 'f' || op.move === 't') {
       tailColDiff = 1;
     }
     if (this.caret.atTail() && (op.target === 'w' || op.target === 'e')) {

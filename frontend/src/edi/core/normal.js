@@ -108,6 +108,7 @@ export default class Normal {
       case 'x': case 'r': case '~': case 'u':
       case 'v': case 'V': case '<c-v>':
       case '<c-r>': case '<c-k>':
+      case '\\':
         this.operation = key;
         this.execute();
         return Feed.Handled;
@@ -156,6 +157,10 @@ export default class Normal {
         this.move = key;
         this.state = State.Target;
         return Feed.Handled;
+      case 'f': case 'F': case 't':
+        this.move = key;
+        this.state = State.Target;
+        return Feed.Handled;
       case 'h': case 'l': case 'j': case 'k':
       case 'H': case 'L': case 'G': case '^':
         this.move = key;
@@ -183,6 +188,11 @@ export default class Normal {
         this.execute();
         return Feed.Handled;
       default:
+        if (this.move === 'f' || this.move === 'F' || this.move === 't') {
+          this.target = key;
+          this.execute();
+          return Feed.Handled;
+        }
         break;
     }
     if (this.operation && key === this.operation && !this.move) {
@@ -195,7 +205,11 @@ export default class Normal {
           break;
       }
     }
-    if (this.move === 'i' || this.move === 'a') {
+    if (this.move === 't') {
+      this.target = key;
+      this.execute();
+      return Feed.Handled;
+    } else if (this.move === 'i' || this.move === 'a') {
       switch (key) {
         case '(': case '[': case '{': case '<':
         case '"': case "'": case '`':
