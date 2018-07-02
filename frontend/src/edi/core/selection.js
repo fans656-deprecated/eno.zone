@@ -73,6 +73,10 @@ export default class Selection {
     return [firstRow, firstCol, lastRow, lastCol + 1];
   }
 
+  text() {
+    return this.content.text(...this.range());
+  }
+
   select(selected) {
     switch (this.type) {
       case Visual.Char:

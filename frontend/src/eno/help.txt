@@ -1,0 +1,177 @@
+============================================================ Headers
+
+# Header 1
+
+## Header 2
+
+### Header 3
+
+#### Header 4
+
+##### Header 5
+
+###### Header 6
+
+============================================================ Inline
+
+*emphasis*
+
+_emphasis_
+
+**strong**
+
+__strong__
+
+**_strong and italic_**
+
+~~strike through~~
+
+============================================================ Links
+
+[https://www.google.com] Link with URL as text 
+
+[https://www.google.com | google it] Link with specified text
+
+[/blog/1251] Relative link
+
+============================================================ Images
+
+[/res/img/girl.jpg] URL endswith "jpg/jpeg/png" will show as image
+
+[/res/img/girl.jpg | 128] You can speicify
+  width "128"
+  height "x64"
+  width and height "128x64"
+
+============================================================ Audio
+
+[/res/audio/你是我的幸福吗.mp3]
+
+============================================================ Video
+
+[/res/video/虫群之心.m3u8]
+
+============================================================ Inline code
+
+`console.log('hello')`
+
+============================================================ Block code
+
+```py
+def run():
+  return 'runned'
+```
+
+============================================================ Formula
+
+``e = mc^2`` and ``\sum_{i=0}^{+\infty} (a_i + b_i)``
+
+============================================================ Quote
+
+> Blockquotes are very handy in email to emulate reply text.
+> test test test
+> This line is part of the same quote.
+
+============================================================ HR
+
+Three or more minus start at line beginning
+
+---
+
+============================================================ HTML
+
+<div>
+  <!-- everything here will be rendered as HTML -->
+</div>
+
+============================================================ Applet
+
+{{
+  app: snake
+  width: 320
+  height: 240
+}}
+
+{{
+  app: jizhang
+}}
+
+2018-06-26
+  -22 老碗盛 {eat}
+  +0.11 午饭红包
+2018-06-28
+  -25 魏家凉皮 {eat}
+2018-06-29
+  -28 老碗盛 {eat}
+  +1.61 午饭红包
+
+************************************************************ to be supported
+
+============================================================ Tables
+
++=================================+
+| Tables   | Are           | Cool |
+|=================================|
+| col 3 is | right-aligned | and  |
+| and this |               | asdf |
+|----------+---------------+------|
+| col 3 is | right-aligned | and  |
++=================================+
+
+============================================================ List
+
+1. List
+  1. Sub-List
+  2. Sub-List
+2. List
+
+- Unordered list
+  - Unordered list
+  - Unordered list
+- Unordered list
+
+============================================================ Todos
+
+) undone item
+. done item
+
+********************************************************************************
+
+----------------------------- Single line elements:
+
+line.startsWith('# ') => H1
+line.startsWith('## ') => H2
+line.startsWith('### ') => H3
+line.startsWith('#### ') => H4
+line.startsWith('##### ') => H5
+line.startsWith('---') => HR
+
+----------------------------- Multiline elements:
+
+strippedLine.startsWith('```') => block code start
+
+line.startsWith('<div>') => HTML begin
+line.startsWith('</div>') => HTML end
+
+line.startsWith('{{') => applet begin
+line.startsWith('}}') => applet end
+
+----------------------------- Inline elements:
+
+*emphasis*
+
+_emphasis_
+
+**strong**
+
+__strong__
+
+**_strong and italic_**
+
+~~strike through~~
+
+[https://www.google.com]
+
+`console.log('hello')`
+
+``e = mc^2``

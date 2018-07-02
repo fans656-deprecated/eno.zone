@@ -14,9 +14,7 @@ import Gallery from './Gallery';
 import LeetcodeStatistics from './LeetcodeStatistics';
 //import { Icon } from './common';
 import { getNote, extractYamlText } from './util';
-import { render as renderEno } from './eno/parse';
-
-import 'highlightjs/styles/solarized-dark.css'
+import { parse as parseEno } from './eno/parse';
 
 export default class Note extends Component {
   constructor(props) {
@@ -122,50 +120,74 @@ export default class Note extends Component {
       return null;
     }
 
-    this.parse(note);
-    $(`.blog#${note.id} .pre-content`).append(this.preContent);
-    $(`.blog#${note.id} .after-content`).append(this.afterContent);
-
-    if (this.state.replaceAll) {
-      return this.state.replaceContent;
-    }
-
-    let contentComponent;
-    switch (note.type) {
-      case 'eno':
-        contentComponent = this.renderEno(note);
-        break;
-      default:
-        contentComponent = this.renderOld(note);
-        break;
-    }
     const className = this.props.isSingleView ? 'single-blog-view' : ''
 
-    return (
-      <div className={'blog ' + className} id={note.id}>
-        <NoteTitle className="title" text={note.title}/>
-        <div className="pre-content"/>
-        {contentComponent}
-        <div className="after-content"/>
-        <NoteFooter
-          note={note}
-          visitor={this.props.visitor}
-          commentsVisible={this.props.commentsVisible || this.props.isSingleView}
-          isSingleView={this.props.isSingleView}
-          onChange={this.getNote}
-        />
-      </div>
-    );
+    let eno;
+    if (note.type === 'eno') {
+      let text = note.content;
+      ({text} = extractYamlText(text));
+      eno = parseEno(text);
+      let app;
+      const firstElem = eno.elems.length ? eno.elems[0] : null;
+      eno.elems.forEach(elem => {
+        if (elem.type === 'app') {
+          elem.attrs.env = {
+            isSingleView: this.props.isSingleView,
+          };
+        }
+      });
+      if (firstElem && firstElem.type === 'app') {
+        app = firstElem;
+        app.content = eno.elems.slice(1).map(e => e.plainText()).join('');
+      }
+      if (app && app.attrs.own === 'content') {
+        eno = app;
+      }
+      if (app && app.attrs.display === 'client' && this.props.isSingleView) {
+        return app.render();
+      } else {
+        return (
+          <div className={'blog ' + className} id={note.id}>
+            <NoteTitle className="title" text={note.title}/>
+            {eno.render()}
+            <NoteFooter
+              note={note}
+              visitor={this.props.visitor}
+              commentsVisible={
+                this.props.commentsVisible || this.props.isSingleView
+              }
+              isSingleView={this.props.isSingleView}
+              onChange={this.getNote}
+            />
+          </div>
+        );
+      }
+    } else {
+      this.parse(note);
+      $(`.blog#${note.id} .pre-content`).append(this.preContent);
+      $(`.blog#${note.id} .after-content`).append(this.afterContent);
+      if (this.state.replaceAll) {
+        return this.state.replaceContent;
+      }
+      return (
+        <div className={'blog ' + className} id={note.id}>
+          <NoteTitle className="title" text={note.title}/>
+          <div className="pre-content"/>
+          {this.renderOld(note)}
+          <div className="after-content"/>
+          <NoteFooter
+            note={note}
+            visitor={this.props.visitor}
+            commentsVisible={this.props.commentsVisible || this.props.isSingleView}
+            isSingleView={this.props.isSingleView}
+            onChange={this.getNote}
+          />
+        </div>
+      );
+    }
   }
 
   renderOld = (note) => {
     return <ReactMarkdown className="blog-content" source={note.content}/>;
-  }
-
-  renderEno = (note) => {
-    let text = note.content;
-    ({text} = extractYamlText(text));
-    const html = renderEno(text);
-    return <div dangerouslySetInnerHTML={{__html: html}}/>;
   }
 }

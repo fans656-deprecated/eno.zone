@@ -52,9 +52,7 @@ globalScope.addEventListener('fetch', async (ev) => {
   }
   const downloadConfig = urlToDownloadConfig[url];
   if (downloadConfig) {
-    console.log('downloadConfig', downloadConfig);
     const {meta, content} = downloadConfig;
-    console.log(meta, content);
     ev.respondWith(new Promise(async (resolve) => {
       const res = getResponse(meta, content);
       resolve(res);
@@ -65,7 +63,6 @@ globalScope.addEventListener('fetch', async (ev) => {
       const meta = await getNodeMeta(path);
       // TODO: don't download dir
       const content = await getQiniuContent(meta);
-      console.log(meta, content);
       const res = getResponse(meta, content);
       resolve(res);
     }));

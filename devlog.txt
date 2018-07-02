@@ -991,3 +991,28 @@ Spans.split(col)
         end
             > deleteChar(row, col)
             > caret.decCol(1)
+
+2018-07-02 22:45:18
+可以用 ;m 切换编辑 content/meta
+这样就不需要支持什么 own: content 的 app
+直接 meta
+
+    type: balance
+
+区别就是直接使用content的都用meta type
+audio/video这些数据可以放在app里的用app
+
+
+一个note可以有多种形态
+比如书：
+
+    在note list里的时候显示封面、评分，和个人评价
+    
+    single view的时候就是一个阅读器
+    
+    在shelf note里头就是一个封面——一个note可以引用别的note，并调用它们的不同render
+    
+    shelfs会引用别的shelf——比如科幻类、小说类、etc...
+
+note可以请求后端api，所以可以有各种整合类的note，比如整合所有tag是av的note，tag是凡尔纳的note...
+这样的整合类note不必编辑内容，它的内容会根据整个enos的变动而变动

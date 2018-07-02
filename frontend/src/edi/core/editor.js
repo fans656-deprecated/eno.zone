@@ -2,19 +2,23 @@ import Content from './content';
 import Surface from './surface';
 import CommandSurface from './command-surface';
 import Record from './record';
-import { Mode, Feed } from './constants';
+import { Mode, Feed, HELP } from './constants';
 
 export default class Editor {
   constructor(text, updateUI) {
     this.updateUI = updateUI || (() => null);
 
     this.contentSurface = new Surface(this, {
-      content: new Content(text),
+      content: new Content(text || ''),
       mode: Mode.Normal,
     });
     this.contentSurface.map(':', () => this.prepareCommand(':'));
     this.contentSurface.map('/', () => this.prepareCommand('/'));
     this.contentSurface.map('?', () => this.prepareCommand('?'));
+    this.contentSurface.map(';w', () => this.save());
+    this.contentSurface.map(';q', () => this.saveAndQuit());
+    this.contentSurface.map(';x', () => this.quit());
+    this.contentSurface.map('<c-d>', () => this.preview());
 
     this.commandSurface = new CommandSurface(this, {
       onCommandChange: this.onCommandChange,
@@ -56,6 +60,34 @@ export default class Editor {
       text = ":'<,'>";
     }
     this.switchToCommandMode(text);
+    return Feed.Handled;
+  }
+
+  save() {
+    const text = this.contentSurface.content.text();
+    if (this.onSave) this.onSave(text);
+    return Feed.Handled;
+  }
+
+  saveAndQuit() {
+    const text = this.contentSurface.content.text();
+    if (this.onSaveAndQuit) this.onSaveAndQuit(text);
+    return Feed.Handled;
+  }
+
+  quit() {
+    if (this.onQuit) this.onQuit();
+    return Feed.Handled;
+  }
+
+  preview() {
+    const contentSurface = this.contentSurface;
+    const content = contentSurface.content;
+    const [row, col] = contentSurface.caret.rowcol();
+    const pre = content.text(0, 0, row, col);
+    const aft = content.text(row, col);
+    const text = pre + aft;
+    if (this.onPreview) this.onPreview(text, pre, aft);
     return Feed.Handled;
   }
 
@@ -160,6 +192,10 @@ export default class Editor {
         console.log('quite');
         return;
       default:
+        if ('help'.startsWith(cmd)) {
+          alert(HELP);
+          return;
+        }
         break;
     }
     cmd = parseCommaCommand(cmd);

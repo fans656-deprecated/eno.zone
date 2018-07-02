@@ -6,7 +6,7 @@ import Selection from './selection';
 import InputChange from './inputchange';
 import Paste from './paste';
 import Operand from './operand';
-import { Mode, Feed, Visual, Insert } from './constants';
+import { Mode, Feed, Visual, Insert, INDENT } from './constants';
 import { loop, defaultIfNull, warn, caretBefore } from './utils';
 
 export default class Surface {
@@ -186,6 +186,34 @@ export default class Surface {
     }
   }
 
+  joinNextLine() {
+    const content = this.content;
+    const caret = this.caret;
+    const [row, col] = caret.rowcol();
+    if (row === content.lastRow()) return;
+    const line = content.line(row);
+    const cols = line.cols();
+    this.history.push({
+      redo: () => {
+        content.insertText(row, cols, ' ');
+        content.joinLines(row, 1);
+        caret.setCol(cols);
+      },
+      undo: () => {
+        content.deleteText(row, cols, row, cols + 1);
+        content.insertText(row, cols, '\n');
+        caret.setRowCol(row, col);
+      }
+    });
+  }
+
+  copyToClipboard() {
+    if (this.hasSelection()) {
+      const text = this.selection.text();
+      navigator.clipboard.writeText(text);
+    }
+  }
+
   handleChangeThenInput() {
     if (this.hasSelection()) {
       this.deleteCharAndInput();
@@ -241,7 +269,7 @@ export default class Surface {
     this.history.push({
       redo: () => {
         this.content.deleteLine(row, repeatCount);
-        this.caret.setRowCol(row, col);
+        this.caret.setRowCol(row, col).ensureValid();
       },
       undo: () => {
         if (isLastRow) {
@@ -249,7 +277,7 @@ export default class Surface {
         } else {
           this.content.insertText(row, 0, text + '\n');
         }
-        this.caret.setRowCol(row, col);
+        this.caret.setRowCol(row, col).ensureValid();
       }
     });
   }
@@ -260,7 +288,7 @@ export default class Surface {
     this.history.push({
       redo: () => {
         this.content.deleteText(row, col, row, null);
-        this.caret.setRowCol(row, col);
+        this.caret.ensureValid();
       },
       undo: () => {
         this.content.insertText(row, col, text);
@@ -326,9 +354,11 @@ export default class Surface {
         this.history.push({
           redo: () => {
             this.content.insertText(row, 0, '\n');
+            this.caret.ensureValid();
           },
           undo: () => {
             this.content.deleteLine(row);
+            this.caret.ensureValid();
           }
         });
       }
@@ -448,6 +478,7 @@ export default class Surface {
   }
 
   escape() {
+    this.normal.reset();
     if (this.editor.escape()) {
       return;
     }
@@ -554,8 +585,14 @@ export default class Surface {
       case '<c-u>':
         this.inputModeBackspaceToHead();
         return Feed.Handled;
-      case '<c-j>':
-        // TODO: input without break current line
+      case '<c-o>':
+        this.indentLine();
+        return Feed.Handled;
+      case '<c-d>':
+        this.indentLine(true);
+        return Feed.Handled;
+      case '<c-l>':
+        this.caret.incCol(1);
         return Feed.Handled;
       default:
         break;
@@ -616,6 +653,30 @@ export default class Surface {
     this.updateUI();
   }
 
+  indentLine(unindent) {
+    const content = this.content;
+    const caret = this.caret;
+    const [row, col] = caret.rowcol();
+    let redo = () => {
+      content.insertText(row, 0, INDENT);
+      caret.incCol(INDENT.length);
+    };
+    let undo = () => {
+      const line = content.line(row);
+      if (line._text.startsWith(INDENT)) {
+        content.deleteText(row, 0, row, INDENT.length);
+        caret.decCol(INDENT.length);
+      }
+    };
+    if (unindent) {
+      ([redo, undo] = [undo, redo]);
+    }
+    this.history.push({
+      redo: redo,
+      undo: undo,
+    });
+  }
+
   feedText(text) {
     if (!this.isIn(Mode.Input)) return;
     if (text.length) {
@@ -630,7 +691,6 @@ export default class Surface {
     } else if (op.move || op.target) {
       this.execNormalNavigation(op);
     }
-    this.lastOp = op;
     this.op = null;
   }
 
@@ -642,6 +702,12 @@ export default class Surface {
       case 'd':
       case 'D':
         this.handleNormalDDelete();
+        break;
+      case 'J':
+        this.joinNextLine();
+        break;
+      case '<c-C>':
+        this.copyToClipboard();
         break;
       case 'c':
       case 'C':
@@ -726,6 +792,7 @@ export default class Surface {
         break;
       case 'f': case 'F': case 't':
         this.findInLine();
+        this.lastOp = op;
         break;
       case 'g': 
         if (op.target === 'g') {
@@ -797,7 +864,7 @@ export default class Surface {
         this.doDeleteText(firstRow, firstCol, lastRow, lastCol + 1);
         break;
       case Visual.Line:
-        if (reserveLastBlankLine) {
+        if (false) {
           this.doDeleteText(firstRow, 0, lastRow, null);
         } else {
           this.doDeleteText(firstRow, 0, lastRow + 1, 0);
@@ -843,8 +910,10 @@ export default class Surface {
     }
 
     if (!op.move && (op.target === 'w' || op.target === 'e')) {
-      op.target = 'e';
-      tailColDiff = 1;
+      if (op.operation === 'c') {
+        op.target = 'e';
+        tailColDiff = 1;
+      }
     } else if (op.move === 'f' || op.move === 't') {
       tailColDiff = 1;
     }

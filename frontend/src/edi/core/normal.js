@@ -19,9 +19,11 @@ export default class Normal {
   }
 
   feed = (key) => {
-    const handled = this.tryHandleCustomKey(key);
-    if (handled) {
-      return handled;
+    if (this.state === State.OperationCount) {
+      const handled = this.tryHandleCustomKey(key);
+      if (handled) {
+        return handled;
+      }
     }
     switch (this.state) {
       case State.OperationCount:
@@ -51,7 +53,7 @@ export default class Normal {
         // falls through
       default:
         this.reset();
-        return Feed.Handled;
+        break;
     }
   }
 
@@ -110,6 +112,8 @@ export default class Normal {
       case '<c-r>': case '<c-k>':
       case '\\':
       case 'n': case 'N':
+      case 'J':
+      case '<c-C>':
         this.operation = key;
         this.execute();
         return Feed.Handled;

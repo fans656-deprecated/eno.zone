@@ -7,6 +7,10 @@ export default class Reader {
     this.nextLine();
   }
 
+  pushback() {
+    --this.i;
+  }
+
   nextLine = () => {
     if (this.i >= this.lines.length) {
       this.line = null;
@@ -15,6 +19,13 @@ export default class Reader {
     this.prevLine = this.line;
     this.line = this.lines[this.i++];
     this.indent = getIndent(this.line);
+  }
+
+  consumeNextBlankLine() {
+    this.nextLine();
+    if (this.line.length) {
+      this.pushback();
+    }
   }
 
   isPrevLineEmpty = () => {

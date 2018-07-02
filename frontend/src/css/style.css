@@ -32,8 +32,23 @@ main {
   width: 100%;
 }
 
-pre, code {
-  font-family: Consolas;
+.blog code {
+  font-family: "Consolas", "Courier New", "monospace";
+}
+
+.blog .inline-code {
+  background: #eee;
+  padding: .1em .3em;
+}
+
+.blog pre.code {
+  padding-left: 1em;
+}
+
+.blog pre.code.hljs {
+  background: #f5f5f5;
+  font-size: 0.95em;
+  overflow-x: auto;
 }
 
 .horizontal {
@@ -182,25 +197,9 @@ input.visitor-name {
   line-height: 2;
 }
 
-.blog pre {
-  padding: 1em 0;
-}
-
-.blog code {
-  font-size: 0.95em;
-  line-height: 1;
-  font-family: "Consolas", "Courier New", "monospace";
-  overflow-x: auto;
-}
-
 .blog-content img {
   margin: 1rem 0;
   max-width: 100%;
-}
-
-.blog-content a {
-  border-bottom: 1px dashed var(--fg-color);
-  word-wrap: break-word;
 }
 
 .blog .footer .info-row {
@@ -244,6 +243,8 @@ input.visitor-name {
 }
 
 .blog-content a {
+  border-bottom: 1px dashed var(--fg-color);
+  word-wrap: break-word;
   color: steelblue;
   border: none;
 }

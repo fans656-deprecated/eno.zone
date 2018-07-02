@@ -1,0 +1,42 @@
+Balance
+
+  {{
+  app: balance
+  own: content
+  }}
+  
+  2018-06-26
+    -22 老碗盛 {eat}
+    +0.11 午饭红包
+  2018-06-28
+    -25 魏家凉皮 {eat}
+  2018-06-29
+    -28 老碗盛 {eat}
+    +1.61 午饭红包
+
+Snake
+
+  {{
+  app: snake
+  level: 9
+  }}
+
+Gallery
+
+  {{
+  app: gallery
+  dir: /res/img/girls
+  }}
+
+Book
+
+  {{
+  app: book
+  }}
+
+Stack
+
+  {{
+  app: stack
+  own: content
+  }}

@@ -1,3 +1,5 @@
+import { Feed } from './constants';
+
 export default class KeyMap {
   constructor(defaultCallback) {
     this.defaultCallback = defaultCallback;
@@ -13,14 +15,14 @@ export default class KeyMap {
   feed = (key) => {
     const node = this._getNode(this.node, [key]);
     if (node) {
-      let handled = false;
+      let handled = Feed.Continue;
       node.callbacks.forEach((callback) => {
         const callbackHandled = callback();
         if (callbackHandled) {
           handled = callbackHandled;
         }
       });
-      if (!handled || handled !== 'continue') {
+      if (!handled || handled !== Feed.Continue) {
         this.reset();
       } else {
         this.node = node;

@@ -52,7 +52,14 @@ class EditNote extends React.Component {
         className="edit-blog"
         onKeyUp={this.onKeyUp}
       >
-        <Edi className="note"/>
+        <Edi
+          className="note"
+          content={note.content}
+          onSave={this.onSave}
+          onQuit={this.onQuit}
+          onSaveAndQuit={this.onSaveAndQuit}
+          onPreview={this.onPreview}
+        />
         <div className="buttons horizontal">
           <div className="left">
           </div>
@@ -93,7 +100,6 @@ class EditNote extends React.Component {
         return;
       }
     }
-    console.log(note);
     if (note.id) {
       await putNote(note);
     } else {
@@ -109,6 +115,15 @@ class EditNote extends React.Component {
   onSaveAndQuit = async (text) => {
     await this.onSave(text);
     this.setState({note: this.state.note}, this.navigateBack);
+  }
+
+  onPreview(text, pre, aft) {
+    console.log('onPreview');
+    console.log({
+      text: text,
+      pre: pre,
+      aft: aft,
+    });
   }
 
   onUpload = () => {

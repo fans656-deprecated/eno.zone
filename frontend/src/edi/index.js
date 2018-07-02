@@ -8,7 +8,13 @@ import text from './tmp';
 export default class Edi extends React.Component {
   constructor(props) {
     super(props);
-    this.editor = new Editor(text, this.update);
+
+    this.editor = new Editor(props.content, this.update);
+    this.editor.onSave = props.onSave;
+    this.editor.onQuit = props.onQuit;
+    this.editor.onSaveAndQuit = props.onSaveAndQuit;
+    this.editor.onPreview = props.onPreview;
+
     this.inInputMethod = false;
     this.activeSurface = null;
     this.state = {

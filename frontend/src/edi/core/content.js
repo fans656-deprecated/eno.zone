@@ -5,8 +5,6 @@ export default class Content {
   constructor(text) {
     this.lines = null;
     this.setText(text || '');
-
-    this.textToPaste = '';
   }
 
   rows = () => {
@@ -159,7 +157,8 @@ export default class Content {
         ++wholeDeletionBegRow;
       }
       const lastLine = this.line(lastRow);
-      if (endCol >= lastLine.cols()) {
+      // lastLine.cols() is necessary for delete until empty line beg
+      if (endCol >= lastLine.cols() && lastLine.cols()) {
         ++wholeDeletionRows;
       } else {
         lastLine.deleteText(0, endCol);
