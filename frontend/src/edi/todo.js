@@ -1,13 +1,5 @@
 `
 =============================== critical
-line number
-zz/zt/zb
-page down / up (<c-f> <c-d>)
-
-delete text for paste
-
-. execute last op
-
 <c-c> <c-v> insert multi line
 clipboard
 =============================== major
@@ -47,4 +39,9 @@ make stome show uploaded file
 
 next buffer (;j)
 scroll without change cursor (<c-j> <c-k>)
+zz/zt/zb [with bugs]
+page down / up (<c-f> <c-d>)
+delete text for paste
+. execute last op
+line number
 `

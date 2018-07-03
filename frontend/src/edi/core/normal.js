@@ -101,6 +101,7 @@ export default class Normal {
 
   parseOperation = (key) => {
     switch (key) {
+      case '.':
       case 'p': case 'P':
       case 'i': case 'I':
       case 'a': case 'A':

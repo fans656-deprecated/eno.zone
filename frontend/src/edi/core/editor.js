@@ -3,6 +3,7 @@ import ContentSurface from './content-surface';
 import CommandSurface from './command-surface';
 import Record from './record';
 import { Mode, Feed, HELP } from './constants';
+import sample from '../tmp';
 
 export default class Editor {
   constructor(text, updateUI) {

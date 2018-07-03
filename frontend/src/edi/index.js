@@ -1,5 +1,6 @@
 import React from 'react';
 import Surface from './surface';
+import ContentSurface from './content-surface';
 import Editor from './core/editor';
 import { Mode } from './core/constants';
 import './style.css';
@@ -48,7 +49,7 @@ export default class Edi extends React.Component {
         onFocus={this.onFocus}
         tabIndex="0"
       >
-        <Surface
+        <ContentSurface
           className="content"
           ref={ref => this.contentSurface = ref}
           input={this.input}

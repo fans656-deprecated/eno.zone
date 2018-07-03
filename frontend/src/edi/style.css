@@ -2,6 +2,7 @@
   font-family: Consolas;
   border: 1px solid #ddd;
   position: relative;
+  min-height: 39em;
 }
 
 .edi .view.content {
@@ -14,6 +15,10 @@
 
 .edi.focused.recording {
   outline: 2px solid #DBA800;
+}
+
+.edi {
+  overflow: hidden;
 }
 
 .edi .view {
@@ -50,6 +55,7 @@
 
 .edi .view.content .text {
   padding: .4em;
+  padding-left: .1em;
 }
 
 .edi .view .text {

@@ -26,6 +26,9 @@ export const HELP = `
 Normal:
   <c-m>   Replay record
   ;j      Next buffer
+  <c-f>   Page down
+  <c-d>   Page up
+  <c-e>   Preview
 Input:
   <c-o>   Indent
   <c-d>   Unindent

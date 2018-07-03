@@ -14,6 +14,7 @@ export default class Surface {
     props = props || {};
     this.editor = editor;
     this.content = props.content || new Content();
+    this.content.onRowsChange = this.onRowsChange || (() => null);
     this.mode = props.mode || Mode.Input;
     this.selection = new Selection(this);
     this.insertType = Insert.Default;
@@ -24,7 +25,8 @@ export default class Surface {
     this.inputChange = new InputChange(this);
     this.active = false;
     this.op = null;
-    this.lastOp = null;  // used in search & find in line
+    this.lastOp = null;
+    this.lastFindInLineOp = null;
     this.savedRowCol = null;  // for search caret restore
   }
 
@@ -64,6 +66,7 @@ export default class Surface {
 
   doDeleteText = (firstRow, begCol, lastRow, endCol) => {
     const deletedText = this.content.text(firstRow, begCol, lastRow, endCol);
+    this.paste.set(deletedText, Visual.Char);
     this.history.push({
       redo: () => {
         this.content.deleteText(firstRow, begCol, lastRow, endCol);
@@ -267,6 +270,7 @@ export default class Surface {
     const textRow = row + isLastRow;
     const lines = this.content.lines.slice(textRow, textRow + repeatCount);
     const text = lines.map(line => line._text).join('\n');
+    this.paste.set(text, Visual.Line);
     this.history.push({
       redo: () => {
         this.content.deleteLine(row, repeatCount);
@@ -302,6 +306,7 @@ export default class Surface {
     const [head, tail] = this.getOperationRange(op, props);
     if (head == null) return;
     const text = this.content.text(...head, ...tail);
+    this.paste.set(text, Visual.Char);
     const [row, col] = this.rowcol();
     this.history.push({
       redo: () => {
@@ -695,13 +700,16 @@ export default class Surface {
     switch (op.operation) {
       case 'x':
         this.handleNormalXDelete();
+        this.lastOp = op;
         break;
       case 'd':
       case 'D':
         this.handleNormalDDelete();
+        this.lastOp = op;
         break;
       case 'J':
         this.joinNextLine();
+        this.lastOp = op;
         break;
       case '<c-C>':
         this.copyToClipboard();
@@ -709,9 +717,16 @@ export default class Surface {
       case 'c':
       case 'C':
         this.handleChangeThenInput(op);
+        this.lastOp = op;
         break;
       case 'y':
         this.handleYank();
+        this.lastOp = op;
+        break;
+      case '.':
+        if (this.lastOp) {
+          this.execNormal(this.lastOp);
+        }
         break;
       case 'p':
         this.pasteAfter();
@@ -720,7 +735,7 @@ export default class Surface {
         this.pasteBefore();
         break;
       case '\\':
-        this.findInLine(this.lastOp);
+        this.findInLine(this.lastFindInLineOp);
         break;
       case 'n':
         this.searchNext();
@@ -733,6 +748,7 @@ export default class Surface {
       case 'a': case 'A':
       case 'o': case 'O':
         this.handleInputModeSwitch(op);
+        this.lastOp = op;
         break;
       case 'u': case '<c-r>': case '<c-m>':
         this.handleHistory(op);
@@ -789,7 +805,7 @@ export default class Surface {
         break;
       case 'f': case 'F': case 't':
         this.findInLine();
-        this.lastOp = op;
+        this.lastFindInLineOp = op;
         break;
       case 'g': 
         if (op.target === 'g') {
@@ -805,6 +821,9 @@ export default class Surface {
     switch (op.target) {
       case 'w':
         loop(op.count, this.caret.wordForward);
+        if (op.operation === 'd') {
+          this.lastOp = op;
+        }
         break;
       case 'b':
         loop(op.count, this.caret.wordBackward);

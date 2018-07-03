@@ -132,6 +132,9 @@ export default class Content {
       right.insertText(0, texts.pop());
       this.lines.splice(row, 1, left, right);
       this.lines.splice(row + 1, 0, ...texts.map(text => new Line(text)));
+      if (addedRows) {
+        this.onRowsChange();
+      }
       return [addedRows, lastAddedCols];
     }
   }
@@ -142,6 +145,7 @@ export default class Content {
     if (this.lines.length === 0) {
       this.setText('');
     }
+    this.onRowsChange();
   }
 
   deleteText = (firstRow, begCol, lastRow, endCol) => {
@@ -174,6 +178,7 @@ export default class Content {
     if (this.lines.length === 0) {
       this.setText('');
     }
+    this.onRowsChange();
     return deletedText;
   }
 
@@ -182,6 +187,7 @@ export default class Content {
     if (count) {
       this.line(row).join(...this.lines.splice(row + 1, count));
     }
+    this.onRowsChange();
   }
 
   search = (pattern) => {

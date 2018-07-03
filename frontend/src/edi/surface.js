@@ -2,6 +2,7 @@ import React from 'react';
 import $ from 'jquery';
 import Caret from './caret';
 import { Mode } from './core/constants';
+import { defaultIfNull } from './core/utils';
 
 export default class Surface extends React.Component {
   constructor(props) {
@@ -17,6 +18,12 @@ export default class Surface extends React.Component {
     this.surface = surface;
     surface.onScrollDown = this.onScrollDown;
     surface.onScrollUp = this.onScrollUp;
+    surface.onRowsChange = this.updateScreenRows;
+    surface.onPutTop = this.onPutTop;
+    surface.onPutCenter = this.onPutCenter;
+    surface.onPutBottom = this.onPutBottom;
+    surface.onPageDown = this.onPageDown;
+    surface.onPageUp = this.onPageUp;
   }
 
   activate = () => {
@@ -29,6 +36,10 @@ export default class Surface extends React.Component {
   }
 
   componentDidMount = () => {
+    this.updateScreenRows();
+  }
+
+  updateScreenRows() {
     const viewDiv = $(this.viewDiv);
     if (viewDiv.hasClass('content')) {
       const surfaceHeight = viewDiv.height();
@@ -45,6 +56,7 @@ export default class Surface extends React.Component {
       this.firstRow = 0;
       this.lastRow = lastRow;
       this.rowLeading = lines[0].offsetTop / 2;
+      this.rows = this.lastRow - this.firstRow + 1;
     }
   }
 
@@ -73,12 +85,10 @@ export default class Surface extends React.Component {
 
   onScrollDown = (rows) => {
     rows = rows || 1;
+    if (this.firstRow + rows > this.surface.content.lastRow()) return;
     this.firstRow += rows;
     this.lastRow += rows;
-    const viewDiv = $(this.viewDiv);
-    const line = viewDiv.find('.line').get(this.firstRow);
-    this.viewDiv.scrollTop = line.offsetTop - this.rowLeading;
-
+    this._doScroll();
     const caret = this.surface.caret;
     if (caret.row < this.firstRow) {
       caret.setRow(this.firstRow);
@@ -90,13 +100,47 @@ export default class Surface extends React.Component {
     if (this.firstRow - rows < 0) return;
     this.firstRow -= rows;
     this.lastRow -= rows;
-    const viewDiv = $(this.viewDiv);
-    const line = viewDiv.find('.line').get(this.firstRow);
-    this.viewDiv.scrollTop = line.offsetTop - this.rowLeading;
-
+    this._doScroll();
     const caret = this.surface.caret;
     if (caret.row > this.lastRow) {
       caret.setRow(this.lastRow);
+    }
+  }
+
+  onPageDown = () => {
+    this.onScrollDown(this.rows);
+  }
+
+  onPageUp = () => {
+    this.onScrollUp(this.rows);
+  }
+
+  _doScroll(row) {
+    // this implementation can't handle scroll over last line
+    // i.e. we can't place last row on first screen row
+    row = defaultIfNull(row, this.firstRow);
+    this.firstRow = row;
+    const viewDiv = $(this.viewDiv);
+    const line = viewDiv.find('.line').get(row);
+    this.viewDiv.scrollTop = line.offsetTop - this.rowLeading;
+  }
+
+  onPutTop = () => {
+    this._doScroll(this.surface.caret.row);
+  }
+
+  onPutCenter = () => {
+    let row = this.surface.caret.row;
+    row = row - Math.floor(this.rows / 2);
+    if (row >= 0) {
+      this._doScroll(row);
+    }
+  }
+
+  onPutBottom = () => {
+    let row = this.surface.caret.row - this.rows + 1;
+    if (row >= 0) {
+      this._doScroll(row);
     }
   }
 
