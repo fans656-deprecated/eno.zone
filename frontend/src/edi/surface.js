@@ -6,7 +6,17 @@ import { Mode } from './core/constants';
 export default class Surface extends React.Component {
   constructor(props) {
     super(props);
-    this.surface = props.surface;
+    this.setSurface(props.surface);
+  }
+
+  componentWillReceiveProps(props) {
+    this.setSurface(props.surface);
+  }
+
+  setSurface(surface) {
+    this.surface = surface;
+    surface.onScrollDown = this.onScrollDown;
+    surface.onScrollUp = this.onScrollUp;
   }
 
   activate = () => {
@@ -16,6 +26,26 @@ export default class Surface extends React.Component {
 
   deactivate = () => {
     this.caret.hide();
+  }
+
+  componentDidMount = () => {
+    const viewDiv = $(this.viewDiv);
+    if (viewDiv.hasClass('content')) {
+      const surfaceHeight = viewDiv.height();
+      this.surfaceHeight = surfaceHeight;
+      const lines = viewDiv.find('.line');
+      let lastRow = 0;
+      for (let row = 0; row < lines.length; ++row) {
+        const line = lines[row];
+        if (line.offsetTop > surfaceHeight) {
+          break;
+        }
+        lastRow = row;
+      }
+      this.firstRow = 0;
+      this.lastRow = lastRow;
+      this.rowLeading = lines[0].offsetTop / 2;
+    }
   }
 
   componentDidUpdate = () => {
@@ -39,6 +69,35 @@ export default class Surface extends React.Component {
         <Caret ref={ref => this.caret = ref}/>
       </div>
     );
+  }
+
+  onScrollDown = (rows) => {
+    rows = rows || 1;
+    this.firstRow += rows;
+    this.lastRow += rows;
+    const viewDiv = $(this.viewDiv);
+    const line = viewDiv.find('.line').get(this.firstRow);
+    this.viewDiv.scrollTop = line.offsetTop - this.rowLeading;
+
+    const caret = this.surface.caret;
+    if (caret.row < this.firstRow) {
+      caret.setRow(this.firstRow);
+    }
+  }
+
+  onScrollUp = (rows) => {
+    rows = rows || 1;
+    if (this.firstRow - rows < 0) return;
+    this.firstRow -= rows;
+    this.lastRow -= rows;
+    const viewDiv = $(this.viewDiv);
+    const line = viewDiv.find('.line').get(this.firstRow);
+    this.viewDiv.scrollTop = line.offsetTop - this.rowLeading;
+
+    const caret = this.surface.caret;
+    if (caret.row > this.lastRow) {
+      caret.setRow(this.lastRow);
+    }
   }
 
   renderContent = (content) => {
@@ -114,9 +173,11 @@ export default class Surface extends React.Component {
       left: rect.x,
       top: rect.y,
     });
-    caret.ensureVisible();
-    if (this.surface.caret.row === 0) {
-      this.viewDiv.scrollTop = 0;
+    const [row, col] = this.surface.caret.rowcol();
+    if (row > this.lastRow) {
+      this.onScrollDown(row - this.lastRow);
+    } else if (row < this.firstRow) {
+      this.onScrollDown(row - this.firstRow);
     }
   }
 

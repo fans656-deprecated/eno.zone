@@ -1,87 +1,177 @@
 const text = String.raw`
-me 'food' feard that feed
-me (
-paren paren
-) that
-"paren paren" that
-[paren paren] that
-{paren paren} that
-`.trim()
-+ '\n`paren paren` that';
+============================================================ Headers
 
-`
-import $ from 'jquery';
-import Content from './content';
-import Surface from './surface';
-export default class View extends React.Component {
-and etc etc, like void
-  constructor(props) {
-    super(props);
-    this.surface = props.surface;
-  }
+# Header 1
 
-  activate = () => {
-    this._takeInput();
-  }
+## Header 2
 
-  deactivate = () => {
-    this.hideCaret();
-  }
+### Header 3
 
-  showCaret = () => {
-    this.caret.show();
-  }
+#### Header 4
 
-  hideCaret = () => {
-    this.caret.hide();
-  }
-`.trim();
-`
-if (foo.bar == /^and$/) {
-hello world
+##### Header 5
 
-  setCaretType = () => {
-  }
+###### Header 6
 
-  componentDidMount = () => {
-  }
+============================================================ Inline
 
-  render() {
-    return (
-      <div
-        className={['view', this.props.className].join(' ')}
-        ref={ref => this.viewDiv = ref}
-      >
-        <div
-          className="text"
-          ref={ref => this.textDiv = ref}
-        >
-          {this._renderContent(this.surface.content)}
-        </div>
-        <Caret ref={ref => this.caret = ref}/>
-      </div>
-    );
-  }
+*emphasis*
 
-  _renderContent = (content) => {
-    const lineComponents = [];
-    content.lines.forEach((line, iLine) => {
-      if (lineComponents.length) {
-        lineComponents.push(<br key={'br' + iLine}/>);
-      }
-      lineComponents.push(this._renderLine(line, iLine));
-    });
-    return lineComponents;
-  }
+_emphasis_
 
-  _renderLine = (line, iLine) => {
-    if (line.text.length === 0) {
-      return this._renderDummyLine(iLine);
-    } else {
-      return (
-        <span className="line" key={iLine}>
-          {this._renderElem(line.text, 0)}
-        </span>
+**strong**
+
+__strong__
+
+**_strong and italic_**
+
+~~strike through~~
+
+============================================================ Links
+
+[https://www.google.com] Link with URL as text 
+
+[https://www.google.com | google it] Link with specified text
+
+[/blog/1251] Relative link
+
+============================================================ Images
+
+[/res/img/girl.jpg] URL endswith "jpg/jpeg/png" will show as image
+
+[/res/img/girl.jpg | 128] You can speicify
+  width "128"
+  height "x64"
+  width and height "128x64"
+
+============================================================ Audio
+
+[/res/audio/你是我的幸福吗.mp3]
+
+============================================================ Video
+
+[/res/video/虫群之心.m3u8]
+
+============================================================ Inline code
+
+\`console.log('hello')\`
+
+============================================================ Block code
+
+\`\`\`py
+def run():
+  return 'runned'
+\`\`\`
+
+============================================================ Formula
+
+\`\`e = mc^2\`\` and \`\`\sum_{i=0}^{+\infty} (a_i + b_i)\`\`
+
+============================================================ Quote
+
+> Blockquotes are very handy in email to emulate reply text.
+> test test test
+> This line is part of the same quote.
+
+============================================================ HR
+
+Three or more minus start at line beginning
+
+---
+
+============================================================ HTML
+
+<div>
+  <!-- everything here will be rendered as HTML -->
+</div>
+
+============================================================ Applet
+
+{{
+  app: snake
+  width: 320
+  height: 240
+}}
+
+{{
+  app: jizhang
+}}
+
+2018-06-26
+  -22 老碗盛 {eat}
+  +0.11 午饭红包
+2018-06-28
+  -25 魏家凉皮 {eat}
+2018-06-29
+  -28 老碗盛 {eat}
+  +1.61 午饭红包
+
+************************************************************ to be supported
+
+============================================================ Tables
+
++=================================+
+| Tables   | Are           | Cool |
+|=================================|
+| col 3 is | right-aligned | and  |
+| and this |               | asdf |
+|----------+---------------+------|
+| col 3 is | right-aligned | and  |
++=================================+
+
+============================================================ List
+
+1. List
+  1. Sub-List
+  2. Sub-List
+2. List
+
+- Unordered list
+  - Unordered list
+  - Unordered list
+- Unordered list
+
+============================================================ Todos
+
+) undone item
+. done item
+
+********************************************************************************
+
+----------------------------- Single line elements:
+
+line.startsWith('# ') => H1
+line.startsWith('## ') => H2
+line.startsWith('### ') => H3
+line.startsWith('#### ') => H4
+line.startsWith('##### ') => H5
+line.startsWith('---') => HR
+
+----------------------------- Multiline elements:
+
+strippedLine.startsWith('\`\`\`') => block code start
+
+line.startsWith('<div>') => HTML begin
+line.startsWith('</div>') => HTML end
+
+line.startsWith('{{') => applet begin
+line.startsWith('}}') => applet end
+
+----------------------------- Inline elements:
+
+*emphasis*
+
+_emphasis_
+
+**strong**
+
+__strong__
+
+**_strong and italic_**
+
+~~strike through~~
+
+[https://www.google.com]
 `.trim();
 
 export default text;

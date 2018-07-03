@@ -1016,3 +1016,6 @@ audio/video这些数据可以放在app里的用app
 
 note可以请求后端api，所以可以有各种整合类的note，比如整合所有tag是av的note，tag是凡尔纳的note...
 这样的整合类note不必编辑内容，它的内容会根据整个enos的变动而变动
+
+
+不过，接下来很现实的，，得先把edi的ctrl-c ctrl-v和dd paste之类的整好

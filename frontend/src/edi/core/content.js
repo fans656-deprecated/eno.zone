@@ -139,6 +139,9 @@ export default class Content {
   deleteLine = (row, count) => {
     count = defaultIfNull(count, 1);
     this.lines.splice(row, count);
+    if (this.lines.length === 0) {
+      this.setText('');
+    }
   }
 
   deleteText = (firstRow, begCol, lastRow, endCol) => {

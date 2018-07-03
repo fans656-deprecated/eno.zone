@@ -22,7 +22,12 @@ export default class Edi extends React.Component {
     };
   }
 
+  open(fname, text) {
+    this.editor.open(fname, text);
+  }
+
   componentDidMount = () => {
+    // for debug
     const editor = this.editor;
     const contentSurface = editor.contentSurface;
     const content = contentSurface.content;

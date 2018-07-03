@@ -1,5 +1,5 @@
-import Content from './content';
 import Surface from './surface';
+import ContentSurface from './content-surface';
 import CommandSurface from './command-surface';
 import Record from './record';
 import { Mode, Feed, HELP } from './constants';
@@ -8,22 +8,14 @@ export default class Editor {
   constructor(text, updateUI) {
     this.updateUI = updateUI || (() => null);
 
-    this.contentSurface = new Surface(this, {
-      content: new Content(text || ''),
-      mode: Mode.Normal,
-    });
-    this.contentSurface.map(':', () => this.prepareCommand(':'));
-    this.contentSurface.map('/', () => this.prepareCommand('/'));
-    this.contentSurface.map('?', () => this.prepareCommand('?'));
-    this.contentSurface.map(';w', () => this.save());
-    this.contentSurface.map(';q', () => this.saveAndQuit());
-    this.contentSurface.map(';x', () => this.quit());
-    this.contentSurface.map('<c-d>', () => this.preview());
-
+    this.contentSurface = new ContentSurface(text, this);
     this.commandSurface = new CommandSurface(this, {
       onCommandChange: this.onCommandChange,
     });
+    this.editingMeta = false;
 
+    this.bufferSurfaces = [['content', this.contentSurface]];
+    this.bufferIndex = 0;
     this.surfaces = [
       this.contentSurface,
       this.commandSurface,
@@ -34,6 +26,11 @@ export default class Editor {
     this.mode = null;
     this.activeSurface = null;
     this.switchToNormalMode();
+  }
+
+  open(fname, text) {
+    const bufferSurfaces = this.bufferSurfaces;
+    bufferSurfaces.push([fname, new ContentSurface(text, this)]);
   }
 
   isIn = (mode) => this.mode === mode
@@ -55,6 +52,17 @@ export default class Editor {
     this.activeSurface.feedText(text);
   }
 
+  nextBuffer() {
+    const bufferSurfaces = this.bufferSurfaces;
+    let i = this.bufferIndex;
+    i = (i + 1) % bufferSurfaces.length;
+    this.bufferIndex = i;
+    this.contentSurface = bufferSurfaces[i][1];
+    this.activateSurface(this.contentSurface);
+    this.updateUI();
+    return Feed.Handled;
+  }
+
   prepareCommand = (text) => {
     if (text === ':' && this.contentSurface.hasSelection()) {
       text = ":'<,'>";
@@ -63,15 +71,21 @@ export default class Editor {
     return Feed.Handled;
   }
 
+  buffersForSave() {
+    const buffers = {};
+    for (const [fname, surface] of this.bufferSurfaces) {
+      buffers[fname] = surface.content.text();
+    }
+    return buffers;
+  }
+
   save() {
-    const text = this.contentSurface.content.text();
-    if (this.onSave) this.onSave(text);
+    if (this.onSave) this.onSave(this.buffersForSave());
     return Feed.Handled;
   }
 
   saveAndQuit() {
-    const text = this.contentSurface.content.text();
-    if (this.onSaveAndQuit) this.onSaveAndQuit(text);
+    if (this.onSaveAndQuit) this.onSaveAndQuit(this.buffersForSave());
     return Feed.Handled;
   }
 
@@ -183,14 +197,7 @@ export default class Editor {
   }
 
   _executeCommaCommand(cmd) {
-    console.log('_executeCommaCommand', cmd);
     switch (cmd) {
-      case 'w':
-        console.log('write');
-        return;
-      case 'q':
-        console.log('quite');
-        return;
       default:
         if ('help'.startsWith(cmd)) {
           alert(HELP);

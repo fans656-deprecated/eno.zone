@@ -110,10 +110,11 @@ export function getOwner() {
 export function parseNoteMeta(notemeta) {
   const meta = {};
 
-  // these can't be edited
+  // these are not allowed to edit
   delete notemeta.id;
   delete notemeta.owner;
-  delete notemeta.content
+  delete notemeta.content;
+  delete notemeta.metaContent;
 
   // tag: foo bar => tags: ['foo', 'bar']
   const tags = notemeta.tags || [];

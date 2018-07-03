@@ -36,6 +36,10 @@ class EditNote extends React.Component {
     }
     this.setState({
       note: note,
+    }, () => {
+      const note = this.state.note;
+      const metaContent = note.metaContent || '';
+      this.edi.open('meta', metaContent);
     });
   }
 
@@ -53,6 +57,7 @@ class EditNote extends React.Component {
         onKeyUp={this.onKeyUp}
       >
         <Edi
+          ref={ref => this.edi = ref}
           className="note"
           content={note.content}
           onSave={this.onSave}
@@ -81,13 +86,18 @@ class EditNote extends React.Component {
     );
   }
 
-  onSave = async (text) => {
+  onSave = async (fnameToBuffer) => {
+    const content = fnameToBuffer['content'];
+    const metaContent = fnameToBuffer['meta'];
+
     let note = this.state.note;
-    note.content = text;
-    const {yamltext} = extractYamlText(text);
-    if (yamltext) {
+    note.content = content;
+    note.metaContent = metaContent;
+
+    // parse and save meta
+    if (metaContent) {
       try {
-        const notemeta = yaml.safeLoad(yamltext);
+        const notemeta = yaml.safeLoad(metaContent);
         const meta = parseNoteMeta(notemeta);
         $.extend(note, meta);
         for (const key in note) {
@@ -100,6 +110,8 @@ class EditNote extends React.Component {
         return;
       }
     }
+    console.log(note);
+
     if (note.id) {
       await putNote(note);
     } else {

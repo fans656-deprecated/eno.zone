@@ -227,10 +227,11 @@ export default class Surface {
       this.history.push({
         redo: () => {
           this.content.deleteText(row, col, row, null);
-          this.caret.incCol(1, true);
+          this.caret.incCol(1, true).ensureValid();
         },
         undo: () => {
           this.content.insertText(row, col, text);
+          this.caret.ensureValid();
         }
       });
       this._switchToInputMode({
@@ -550,13 +551,6 @@ export default class Surface {
   }
 
   feedKey(key) {
-    switch (key) {
-      case '<c-k>':
-        this.escape();
-        return Feed.Handled;
-      default:
-        break;
-    }
     if (this.mode === Mode.Input) {
       return this.handleInputKeyFeed(key);
     } else {
@@ -566,6 +560,9 @@ export default class Surface {
 
   handleInputKeyFeed(key) {
     switch (key) {
+      case '<c-k>':
+        this.escape();
+        return Feed.Handled;
       case '<cr>':
       case '<c-m>':
         this.inputModeInsert('\n');

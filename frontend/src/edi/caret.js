@@ -53,8 +53,4 @@ export default class Caret extends React.Component {
       width: width,
     });
   }
-
-  ensureVisible = () => {
-    this.div.get(0).scrollIntoViewIfNeeded(false);
-  }
 }
