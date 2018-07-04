@@ -1,29 +1,22 @@
 `
 =============================== critical
-<c-c> <c-v> insert multi line
-clipboard
 =============================== major
-replace char (r)
-visual replace
-
-M (match paren)
-instant search caret move
-
-visual indent/unindent (>> <<)
 =============================== minor
 toggle preview (<c-d>)
 mouse selection
-toggle uppercase (~)
 underscore (ctrl-i)
 insert timestamp (;d)
 <c-p> auto completion
-
-overflow-x
+M (match paren)
+visual indent/unindent (>> <<)
 =============================== bugs
-ciw/caw/yiw/...
-bug: insert newline with previous indent
+bug: ciw/caw/yiw/...
 bug: V delete with first empty line
 bug: cw in leading spaces
+bug: can't put last row to screen first row
+
+bug: scroll when long line wraps
+bug: visual replace with multiple line
 =============================== others
 upload (;u)
 paste image
@@ -44,4 +37,11 @@ page down / up (<c-f> <c-d>)
 delete text for paste
 . execute last op
 line number
+<c-c> <c-v> insert multi line
+clipboard
+replace char (r)
+visual replace
+toggle uppercase (~)
+bug: insert newline with previous indent
+instant search caret move
 `

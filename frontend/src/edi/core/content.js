@@ -139,6 +139,11 @@ export default class Content {
     }
   }
 
+  replaceText(firstRow, begCol, lastRow, endCol, text) {
+    this.deleteText(firstRow, begCol, lastRow, endCol);
+    this.insertText(firstRow, begCol, text);
+  }
+
   deleteLine = (row, count) => {
     count = defaultIfNull(count, 1);
     this.lines.splice(row, count);

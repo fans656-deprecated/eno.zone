@@ -61,7 +61,7 @@ export default class Edi extends React.Component {
           ref={ref => this.commandSurface = ref}
           surface={this.editor.commandSurface}
         />
-        <input
+        <textarea
           className="input-element"
           ref={ref => this.input = ref}
           onBlur={this.onBlur}
@@ -69,6 +69,7 @@ export default class Edi extends React.Component {
           onCompositionStart={this.onCompositionStart}
           onCompositionEnd={this.onCompositionEnd}
           onKeyDown={this.onKeyDown}
+          onPaste={this.onPaste}
         />
       </div>
     );
@@ -137,6 +138,12 @@ export default class Edi extends React.Component {
           ev.stopPropagation();
         }
       }
+    }
+  }
+
+  onPaste = (ev) => {
+    for (const item of ev.clipboardData.items) {
+      this.editor.paste(item);
     }
   }
 

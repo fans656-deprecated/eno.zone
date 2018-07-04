@@ -20,6 +20,10 @@ export default class Line {
     return this._text.substring(beg, end);
   }
 
+  indent() {
+    return this._text.match(/^\s*/)[0];
+  }
+
   insertText = (col, text) => {
     const [pre, aft] = split(this._text, col);
     this._text = pre + text + aft;

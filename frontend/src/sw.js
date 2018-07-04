@@ -70,6 +70,7 @@ globalScope.addEventListener('fetch', async (ev) => {
 });
 
 function addDownloadConfig(message) {
+  console.log(message);
   const meta = message.meta;
   const config = getClientDownloadConfig(meta);
   if (config) {

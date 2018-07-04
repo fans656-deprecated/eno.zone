@@ -100,7 +100,7 @@ class QiniuUpload {
           const loaded = (chunk.size * total.percent / 100).toFixed(0);
           const diff = loaded - chunk.loaded;
           chunk.loaded = total.loaded;
-          onNewLoaded(diff);
+          if (onNewLoaded) onNewLoaded(diff);
         },
         error: (err) => {
           console.log('error', {

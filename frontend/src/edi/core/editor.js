@@ -34,6 +34,10 @@ export default class Editor {
     bufferSurfaces.push([fname, new ContentSurface(text, this)]);
   }
 
+  paste(item) {
+    this.contentSurface.pasteItem(item);
+  }
+
   isIn = (mode) => this.mode === mode
 
   isRecording = () => this.record.recording

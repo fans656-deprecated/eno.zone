@@ -1,16 +1,24 @@
-.formula {
+.note-content .formula {
   font-size: unset !important;
   line-height: unset !important;
 }
 
-.katex-display {
+.note-content .katex-display {
   display: inline-block;
   margin: 0;
 }
 
-.formula * {
+.note-content .formula * {
 }
 
-img {
+.note-content img {
   max-width: 100%;
+}
+
+.note-content a {
+  color: steelblue;
+}
+
+.note-content a:hover {
+  text-decoration: underline;
 }

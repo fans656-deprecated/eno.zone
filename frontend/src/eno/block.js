@@ -40,7 +40,7 @@ export default class Block {
     const comps = this.elems.map((e, i) => {
       return e.setKey(i).render();
     });
-    return <div>{comps}</div>;
+    return <div className="note-content">{comps}</div>;
   }
 
   html = () => {

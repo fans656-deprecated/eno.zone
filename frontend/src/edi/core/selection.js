@@ -70,11 +70,22 @@ export default class Selection {
     const [head, tail] = this.headtail();
     const [firstRow, firstCol] = head;
     const [lastRow, lastCol] = tail;
-    return [firstRow, firstCol, lastRow, lastCol + 1];
+    if (this.type === Visual.Line) {
+      const endCol = this.content.line(lastRow).cols();
+      return [firstRow, 0, lastRow, endCol];
+    } else {
+      return [firstRow, firstCol, lastRow, lastCol + 1];
+    }
   }
 
   text() {
-    return this.content.text(...this.range());
+    switch (this.type) {
+      case Visual.Line:
+        const [firstRow, lastRow] = this.headtailRows();
+        return this.content.text(firstRow, 0, lastRow, null);
+      default:
+        return this.content.text(...this.range());
+    }
   }
 
   select(selected) {

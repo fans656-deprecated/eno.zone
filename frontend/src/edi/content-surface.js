@@ -21,7 +21,7 @@ export default class ContentSurface extends Surface {
         lineNumber = Math.abs(row - currentRow);
       }
       lineComponents.push(
-        <span>
+        <span key={iLine}>
           <span className="line-number" style={{
             display: 'inline-block',
             color: isCurrent ? '#888' : '#ccc',

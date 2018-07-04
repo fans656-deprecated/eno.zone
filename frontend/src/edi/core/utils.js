@@ -1,5 +1,21 @@
 export const noop = () => null
 
+const WIN_PLATFORMS = ['Win32', 'Win64', 'Windows', 'WinCE'];
+
+export function toggleCase(text) {
+  const chars = [];
+  for (const ch of text) {
+    const upper = ch.toUpperCase();
+    chars.push(ch === upper ? ch.toLowerCase() : upper);
+  }
+  return chars.join('');
+}
+
+export function isWindows() {
+  const platform = navigator.platform;
+  return WIN_PLATFORMS.indexOf(platform) !== -1;
+}
+
 export function warn(text) {
   console.log('WARNING:', text);
 }

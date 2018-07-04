@@ -102,19 +102,20 @@ export default class Normal {
   parseOperation = (key) => {
     switch (key) {
       case '.':
+      case '~':
       case 'p': case 'P':
       case 'i': case 'I':
       case 'a': case 'A':
       case 'o': case 'O':
       case 's': case 'S':
       case 'D': case 'C': case 'Y':
-      case 'x': case 'r': case '~': case 'u':
+      case 'x': case '~': case 'u':
       case 'v': case 'V': case '<c-v>':
       case '<c-r>': case '<c-k>':
       case '\\':
       case 'n': case 'N':
       case 'J':
-      case '<c-C>':
+      case '<c-c>': case '<c-C>':
         this.operation = key;
         this.execute();
         return Feed.Handled;
@@ -142,6 +143,10 @@ export default class Normal {
         } else {
           this.state = State.Target;
         }
+        return Feed.Handled;
+      case 'r':
+        this.operation = key;
+        this.state = State.Target;
         return Feed.Handled;
       default:
         break;
@@ -211,7 +216,7 @@ export default class Normal {
           break;
       }
     }
-    if (this.move === 't') {
+    if (this.move === 't' || this.operation === 'r') {
       this.target = key;
       this.execute();
       return Feed.Handled;

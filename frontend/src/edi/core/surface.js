@@ -6,8 +6,12 @@ import Selection from './selection';
 import InputChange from './inputchange';
 import Paste from './paste';
 import Operand from './operand';
+import stomeAPI from '../../stome/api';
 import { Mode, Feed, Visual, Insert, INDENT } from './constants';
-import { loop, defaultIfNull, warn, caretBefore } from './utils';
+import {
+  loop, defaultIfNull, warn, caretBefore, isWindows,
+  toggleCase,
+} from './utils';
 
 export default class Surface {
   constructor(editor, props) {
@@ -212,7 +216,10 @@ export default class Surface {
 
   copyToClipboard() {
     if (this.hasSelection()) {
-      const text = this.selection.text();
+      let text = this.selection.text();
+      if (isWindows()) {
+        text = text.split('\n').join('\r\n');
+      }
       navigator.clipboard.writeText(text);
     }
   }
@@ -355,15 +362,16 @@ export default class Surface {
 
   inputAbove() {
     this._switchToInputMode({
-      beforeInput: () => {
+      whenInput: () => {
         const row = this.caret.row;
+        const content = this.content;
         this.history.push({
           redo: () => {
-            this.content.insertText(row, 0, '\n');
-            this.caret.ensureValid();
+            content.insertText(row, 0, this.currentLine().indent() + '\n');
+            this.caret.toLastCol();
           },
           undo: () => {
-            this.content.deleteLine(row);
+            content.deleteLine(row);
             this.caret.ensureValid();
           }
         });
@@ -373,15 +381,16 @@ export default class Surface {
 
   inputBelow() {
     this._switchToInputMode({
-      beforeInput: () => {
+      whenInput: () => {
         const row = this.caret.row;
+        const content = this.content;
         this.history.push({
           redo: () => {
-            this.content.insertText(row, null, '\n');
-            this.caret.incRow(1);
+            content.insertText(row, null, '\n' + this.currentLine().indent());
+            this.caret.incRow(1).toLastCol();
           },
           undo: () => {
-            this.content.deleteLine(row + 1);
+            content.deleteLine(row + 1);
             this.caret.setRow(row);
           }
         });
@@ -450,6 +459,55 @@ export default class Surface {
         }
         break;
     }
+  }
+
+  replaceChars() {
+    const range = this._getRange();
+    const chars = new Array(range[3] - range[1]).fill(op.target).join('');
+    const [row, col] = this.caret.rowcol();
+    const text = this.content.text(...range);
+    this.history.push({
+      redo: () => {
+        this.content.replaceText(...range, chars);
+        this.caret.setRowCol(row, col);
+      },
+      undo: () => {
+        this.content.replaceText(...range, text);
+        this.caret.setRowCol(row, col);
+      }
+    });
+  }
+
+  toggleCase() {
+    const range = this._getRange();
+    const [row, col] = this.caret.rowcol();
+    const text = this.content.text(...range);
+    const changedText = toggleCase(text);
+    if (text === changedText) return;
+    this.history.push({
+      redo: () => {
+        this.content.replaceText(...range, changedText);
+        this.caret.setRowCol(row, range[3]).ensureValid();
+      },
+      undo: () => {
+        this.content.replaceText(...range, text);
+        this.caret.setRowCol(row, col);
+      }
+    });
+  }
+
+  // for 'r' and '~'
+  _getRange() {
+    const op = this.op;
+    let range;
+    if (this.hasSelection()) {
+      range = this.selection.range();
+      this.selection.toggle(false);
+    } else {
+      const [row, col] = this.caret.rowcol();
+      range = [row, col, row, col + op.count];
+    }
+    return range;
   }
 
   _paste(before) {
@@ -570,11 +628,11 @@ export default class Surface {
         return Feed.Handled;
       case '<cr>':
       case '<c-m>':
-        this.inputModeInsert('\n');
+        this.inputModeInsert('\n' + this.currentLine().indent());
         return Feed.Handled;
       case '<c-j>':
         this.caret.toLastCol();
-        this.inputModeInsert('\n');
+        this.inputModeInsert('\n' + this.currentLine().indent());
         return Feed.Handled;
       case '<bs>':
       case '<c-h>':
@@ -679,6 +737,19 @@ export default class Surface {
     });
   }
 
+  pasteItem(item) {
+    const kind = item.kind;
+    if (kind !== 'file') return;
+    const type = item.type;
+    if (type.startsWith('image')) {
+      const file = item.getAsFile();
+      console.log(file);
+      const fname = 'paste-image-test.png';
+      stomeAPI.upload(`/${fname}`, file, {overwrite: true});
+      this.feedText(`[/res/${fname}]`);
+    }
+  }
+
   feedText(text) {
     if (!this.isIn(Mode.Input)) return;
     if (text.length) {
@@ -711,6 +782,7 @@ export default class Surface {
         this.joinNextLine();
         this.lastOp = op;
         break;
+      case '<c-c>':
       case '<c-C>':
         this.copyToClipboard();
         break;
@@ -758,6 +830,14 @@ export default class Surface {
         break;
       case 'v': case 'V': case '<c-v>':
         this.handleVisual(op);
+        break;
+      case 'r':
+        this.replaceChars();
+        this.lastFindInLineOp = op;
+        break;
+      case '~':
+        this.toggleCase();
+        this.lastFindInLineOp = op;
         break;
       default:
         break;
