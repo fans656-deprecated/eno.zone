@@ -52,7 +52,7 @@ export default class Paste {
 
   getOperationTargetRange() {
     const op = this.surface.op;
-    const [row, col] = this.surface.rowcol();
+    const row = this.surface.caret.row;
     switch (op.target) {
       case 'y': case 'c': case 'd':
         return [[row, 0, row, null], Visual.Line];
@@ -86,7 +86,7 @@ export default class Paste {
     const redoCol = before ? 0 : null;
     surface.history.push({
       redo: () => {
-        const [addedRows, _] = content.insertText(row, redoCol, text);
+        const addedRows = content.insertText(row, redoCol, text)[0];
         if (before) {
           caret.toFirstNonSpaceCol();
         } else {

@@ -1,15 +1,11 @@
 import React from 'react';
-import $ from 'jquery';
 import { withRouter } from 'react-router-dom';
 import qs from 'query-string';
-import yaml from 'js-yaml';
 
+import Note from './note';
 import Edi from './edi';
 import { Button, DangerButton } from './common';
-import {
-  getNote, putNote, postNote, deleteNote, parseNoteMeta,
-  extractYamlText,
-} from './util';
+import { getNote } from './util';
 
 import './EditNote.css';
 //import { parse as parseEno } from './eno/parse';
@@ -35,10 +31,10 @@ class EditNote extends React.Component {
       note = await getNote(note);
     }
     this.setState({
-      note: note,
+      note: new Note(note),
     }, () => {
       const note = this.state.note;
-      const metaContent = note.metaContent || '';
+      const metaContent = note.metaContent() || '';
       this.edi.open('meta', metaContent);
     });
   }
@@ -59,7 +55,7 @@ class EditNote extends React.Component {
         <Edi
           ref={ref => this.edi = ref}
           className="note"
-          content={note.content}
+          content={note.content()}
           onSave={this.onSave}
           onQuit={this.onQuit}
           onSaveAndQuit={this.onSaveAndQuit}
@@ -89,35 +85,13 @@ class EditNote extends React.Component {
   onSave = async (fnameToBuffer) => {
     const content = fnameToBuffer['content'];
     const metaContent = fnameToBuffer['meta'];
-
     let note = this.state.note;
-    note.content = content;
-    note.metaContent = metaContent;
-
-    // parse and save meta
-    if (metaContent) {
-      try {
-        const notemeta = yaml.safeLoad(metaContent);
-        const meta = parseNoteMeta(notemeta);
-        $.extend(note, meta);
-        for (const key in note) {
-          if (note[key] == null) {
-            delete note[key];
-          }
-        }
-      } catch (e) {
-        alert('Invalid meta\n(You may wanna remove the leading blank line?)');
-        return;
-      }
+    note.setContent(content);
+    note.setMetaContent(metaContent);
+    if (note.id() == null) {
+      note.setOwner(this.props.owner.username);
     }
-    console.log(note);
-
-    if (note.id) {
-      await putNote(note);
-    } else {
-      note.owner = this.props.owner.username;
-      note = await postNote(note);
-    }
+    await note.save();
   }
 
   onQuit = async () => {
@@ -165,13 +139,13 @@ class EditNote extends React.Component {
   }
 
   doDelete = async () => {
-    await deleteNote(this.state.note.id);
+    await this.state.note.delete();
     window.location.href = '/';
   }
 
   navigateBack = () => {
     if (qs.parse(window.location.search).back) {
-      this.props.history.push(`/note/${this.state.note.id}`);
+      this.props.history.push(`/note/${this.state.note.id()}`);
     } else {
       this.props.history.push('/');
     }

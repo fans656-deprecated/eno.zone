@@ -18,8 +18,8 @@ export default class Comment extends React.Component {
     }
   }
 
-  doDelete = () => {
-    deleteComment(this.props.note_id, this.props.comment.id);
+  doDelete = async () => {
+    await deleteComment(this.props.note_id, this.props.comment.id);
     this.props.onDelete();
   }
 

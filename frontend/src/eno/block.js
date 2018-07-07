@@ -1,7 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
 import { TextElem, NewLine } from './elem'
-import { R } from './constants'
 
 export default class Block {
   constructor() {

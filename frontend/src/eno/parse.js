@@ -38,7 +38,6 @@ export function parse(text) {
     }
     reader.nextLine();
   }
-  console.log(block);
   return block;
 }
 

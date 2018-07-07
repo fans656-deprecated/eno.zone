@@ -1,3 +1,5 @@
+import dateFormat from 'dateformat';
+
 export const noop = () => null
 
 const WIN_PLATFORMS = ['Win32', 'Win64', 'Windows', 'WinCE'];
@@ -9,6 +11,10 @@ export function toggleCase(text) {
     chars.push(ch === upper ? ch.toLowerCase() : upper);
   }
   return chars.join('');
+}
+
+export function humanNowStr() {
+  return dateFormat(new Date(), 'yyyy-mm-dd HH:MM:ss');
 }
 
 export function isWindows() {
@@ -71,28 +77,6 @@ export function loop(count, func) {
   for (let i = 0; i < count; ++i) {
     func();
   }
-}
-
-export function groupby(xs, getkey) {
-  const xss = [];
-  const cur = {key: undefined, xs: []};
-  for (const x of xs) {
-    const key = getkey(x);
-    if (cur.xs.length === 0) {
-      cur.key = key;
-      cur.xs.push(x);
-    } else if (cur.key === key) {
-      cur.xs.push(x);
-    } else {
-      xss.push(cur.xs);
-      cur.key = key;
-      cur.xs = [x];
-    }
-  }
-  if (cur.xs.length) {
-    xss.push(cur.xs);
-  }
-  return xss;
 }
 
 export function getWord(line, col) {

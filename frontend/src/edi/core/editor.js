@@ -1,9 +1,8 @@
-import Surface from './surface';
 import ContentSurface from './content-surface';
 import CommandSurface from './command-surface';
 import Record from './record';
 import { Mode, Feed, HELP } from './constants';
-import sample from '../tmp';
+//import sample from '../tmp';
 
 export default class Editor {
   constructor(text, updateUI) {
@@ -180,6 +179,9 @@ export default class Editor {
   executeCommand(cmd) {
     this._executeCommand(cmd);
     this.switchToNormalMode();
+    if (cmd.startsWith('/') || cmd.startsWith('?')) {
+      this.contentSurface.clearHighlights();
+    }
   }
 
   _executeCommand(cmd) {
@@ -254,6 +256,8 @@ function parseCommaCommand(cmd) {
       case 's':
         ret.op = 's';
         parseReplaceCommand(ret, cmd.substring(1));
+        break;
+      default:
         break;
     }
   }

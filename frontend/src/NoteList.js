@@ -2,7 +2,8 @@ import React from 'react';
 import qs from 'query-string';
 
 import { getPagedNotes } from './util';
-import Note from './Note';
+import NoteComp from './Note';
+import Note from './note';
 import OperationPanel from './OperationPanel';
 import Pagination from './Pagination';
 import './css/NoteList.css';
@@ -31,12 +32,18 @@ class NoteList extends React.Component {
       page: q.page,
       size: q.size,
     });
+    pagedNotes.notes = pagedNotes.notes.map(note => new Note(note));
     this.setState({pagedNotes: pagedNotes});
   }
 
   render() {
     const notes = this.state.pagedNotes.notes.map(note => (
-      <Note key={note.id} note={note} id={note.id} visitor={this.props.visitor}/>
+      <NoteComp
+        key={note.id()}
+        note={note}
+        id={note.id()}
+        visitor={this.props.visitor}
+      />
     ));
     return (
       <div className="note-list">

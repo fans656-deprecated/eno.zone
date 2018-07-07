@@ -1,5 +1,6 @@
 import Content from './content';
 import Surface from './surface';
+import { humanNowStr } from './utils';
 import { Mode, Feed } from './constants';
 
 export default class ContentSurface extends Surface {
@@ -11,6 +12,7 @@ export default class ContentSurface extends Surface {
     this.map(':', () => this.editor.prepareCommand(':'));
     this.map('/', () => this.editor.prepareCommand('/'));
     this.map('?', () => this.editor.prepareCommand('?'));
+    this.map(';d', () => this.insertDateTime());
     this.map(';w', () => this.editor.save());
     this.map(';q', () => this.editor.saveAndQuit());
     this.map(';x', () => this.editor.quit());
@@ -23,6 +25,11 @@ export default class ContentSurface extends Surface {
     this.map('zt', () => this.putTop());
     this.map('zz', () => this.putCenter());
     this.map('zb', () => this.putBottom());
+  }
+
+  insertDateTime() {
+    this.doInsertText(humanNowStr());
+    return Feed.Handled;
   }
 
   scrollDown() {

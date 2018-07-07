@@ -109,7 +109,7 @@ export default class Normal {
       case 'o': case 'O':
       case 's': case 'S':
       case 'D': case 'C': case 'Y':
-      case 'x': case '~': case 'u':
+      case 'x': case 'u':
       case 'v': case 'V': case '<c-v>':
       case '<c-r>': case '<c-k>':
       case '\\':

@@ -2,6 +2,8 @@ import React from 'react'
 
 const todo = `\
 
+Select all (ctrl-a)
+
 Sized image
 
   GET /img/girl.jpg?width=64

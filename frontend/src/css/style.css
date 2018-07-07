@@ -41,6 +41,11 @@ main {
   padding: .1em .3em;
 }
 
+.note-content {
+  font-family: "Consolas", "Courier New", "monospace";
+  white-space: pre-wrap;
+}
+
 .blog pre.code {
   padding-left: 1em;
 }
@@ -263,11 +268,11 @@ input.visitor-name {
   filter: opacity(.3);
 }
 
-.blog .tag {
+.blog .footer .tag {
   margin: 0 .4rem;
 }
 
-.blog .tag::before {
+.blog .footer .tag::before {
   content: '# ';
 }
 

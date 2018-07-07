@@ -4,7 +4,6 @@ import ContentSurface from './content-surface';
 import Editor from './core/editor';
 import { Mode } from './core/constants';
 import './style.css';
-import text from './tmp';
 
 export default class Edi extends React.Component {
   constructor(props) {
@@ -29,10 +28,10 @@ export default class Edi extends React.Component {
 
   componentDidMount = () => {
     // for debug
-    const editor = this.editor;
-    const contentSurface = editor.contentSurface;
-    const content = contentSurface.content;
-    this.update();
+    //const editor = this.editor;
+    //const contentSurface = editor.contentSurface;
+    //const content = contentSurface.content;
+    //this.update();
   }
 
   render() {

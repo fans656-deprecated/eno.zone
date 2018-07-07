@@ -1,4 +1,4 @@
-import $ from 'jquery';
+import MD5 from 'js-md5'
 import jwt_decode from 'jwt-decode';
 import Cookies from 'js-cookie';
 
@@ -107,56 +107,56 @@ export function getOwner() {
   }
 }
 
-export function parseNoteMeta(notemeta) {
-  const meta = {};
-
-  // these are not allowed to edit
-  delete notemeta.id;
-  delete notemeta.owner;
-  delete notemeta.content;
-  delete notemeta.metaContent;
-
-  // tag: foo bar => tags: ['foo', 'bar']
-  const tags = notemeta.tags || [];
-  const _tag = notemeta.tag;
-  if (_tag) {
-    delete notemeta.tag;
-    tags.push(..._tag.split(/\s+/));
-  }
-  if (tags) {
-    meta.tags = tags;
-  }
-
-  // url: foo/bar => urls: ['foo/bar']
-  const urls = notemeta.urls || [];
-  const _url = notemeta.url;
-  if (_url) {
-    delete notemeta.url;
-    urls.push(_url);
-  }
-  if (urls) {
-    meta.urls = urls;
-  }
-
-  $.extend(meta, notemeta);
-  return meta;
+export function calcMD5(data) {
+  return MD5.create().update(data).hex();
 }
 
-export function extractYamlText(text) {
-  if (text.startsWith('\n')) {
-    const end = text.search(/\n\n/);
-    if (end !== -1) {
-      // has meta yaml
-      const yamltext = text.substring(1, end);
-      text = text.substring(1 + yamltext.length + 2);
-      return {
-        yamltext: yamltext,
-        text: text,
-      };
+export function groupby(xs, getkey) {
+  const xss = [];
+  const cur = {key: undefined, xs: []};
+  for (let i = 0; i < xs.length; ++i) {
+    const x = xs[i];
+    const key = getkey(x, i);
+    if (cur.xs.length === 0) {
+      cur.key = key;
+      cur.xs.push(x);
+    } else if (cur.key === key) {
+      cur.xs.push(x);
+    } else {
+      xss.push(cur.xs);
+      cur.key = key;
+      cur.xs = [x];
     }
   }
-  return {
-    yamltext: null,
-    text: text,
-  };
+  if (cur.xs.length) {
+    xss.push(cur.xs);
+  }
+  return xss;
+}
+
+export function groupbyLeading(xs, pred) {
+  const gs = [];
+  let g = null;
+  for (const x of xs) {
+    if (pred(x)) {
+      if (g) {
+        gs.push(g);
+      }
+      g = [];
+    }
+    g.push(x);
+  }
+  gs.push(g);
+  return gs;
+}
+
+export function interlace(xs, gen) {
+  const ys = [];
+  xs.forEach((x, i) => {
+    if (ys.length) {
+      ys.push(gen(x, i));
+    }
+    ys.push(x);
+  });
+  return ys;
 }

@@ -1,0 +1,6 @@
+Balance
+  exclude top 10
+  month quick click
+  pie graph by tag
+    fixed color of each tag
+  setable top n

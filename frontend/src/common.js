@@ -25,8 +25,8 @@ export class Button extends Component {
     }
     return (
       <a
-        className={classes.join(' ')}
         {...this.props}
+        className={classes.join(' ') + ' ' + this.props.className}
       >
         {this.props.children}
       </a>

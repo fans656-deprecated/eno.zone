@@ -61,10 +61,18 @@ globalScope.addEventListener('fetch', async (ev) => {
     const path = url.pathname.substring(conf.stomePrefix.length);
     ev.respondWith(new Promise(async (resolve) => {
       const meta = await getNodeMeta(path);
-      // TODO: don't download dir
-      const content = await getQiniuContent(meta);
-      const res = getResponse(meta, content);
-      resolve(res);
+      if (meta.errno) {
+        const res = new Response('', {
+          status: 404,
+          statusText: 'Not found',
+        });
+        resolve(res);
+      } else {
+        // TODO: don't download dir
+        const content = await getQiniuContent(meta);
+        const res = getResponse(meta, content);
+        resolve(res);
+      }
     }));
   }
 });

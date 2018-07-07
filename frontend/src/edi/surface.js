@@ -217,7 +217,7 @@ export default class Surface extends React.Component {
       left: rect.x,
       top: rect.y,
     });
-    const [row, col] = this.surface.caret.rowcol();
+    const row = this.surface.caret.row;
     if (row > this.lastRow) {
       this.onScrollDown(row - this.lastRow);
     } else if (row < this.firstRow) {

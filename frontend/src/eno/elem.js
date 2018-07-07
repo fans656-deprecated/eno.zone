@@ -7,7 +7,6 @@ import 'highlightjs/styles/atom-one-light.css'
 import yaml from 'js-yaml';
 
 import apps from '../apps';
-import { R } from './constants';
 import './elem.css'
 
 export class Elem {
@@ -151,7 +150,7 @@ export class BlockCode extends Elem {
     text = hljs.highlight(lang, text, true).value;
     return (
       <pre key={this.key} className="code hljs">
-        <code className="${lang}" dangerouslySetInnerHTML={{__html: text}}/>
+        <code className={lang} dangerouslySetInnerHTML={{__html: text}}/>
       </pre>
     );
   }
@@ -185,7 +184,7 @@ export class Image extends Elem {
     if (this.height) attrs.height = this.height;
     return (
       <a key={this.key} href={this.value} target="_blank">
-        <img {...attrs}/>
+        <img {...attrs} alt={this.value}/>
       </a>
     );
   }
@@ -256,9 +255,8 @@ export class App extends Elem {
       const content = this.lines.join('\n');
       if (app) {
         return React.createElement(app, {
-          attrs: Object.assign(attrs, {
-            key: this.key,
-          }),
+          key: this.key,
+          attrs: attrs,
           content: this.content,
         });
       } else {

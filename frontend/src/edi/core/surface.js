@@ -1,3 +1,4 @@
+import dateFormat from 'dateformat';
 import Content from './content';
 import Normal from './normal';
 import Caret from './caret';
@@ -9,7 +10,7 @@ import Operand from './operand';
 import stomeAPI from '../../stome/api';
 import { Mode, Feed, Visual, Insert, INDENT } from './constants';
 import {
-  loop, defaultIfNull, warn, caretBefore, isWindows,
+  loop, defaultIfNull, caretBefore, isWindows,
   toggleCase,
 } from './utils';
 
@@ -79,6 +80,24 @@ export default class Surface {
       undo: () => {
         this.content.insertText(firstRow, begCol, deletedText);
         this.caret.setRowCol(firstRow, begCol);
+      }
+    });
+  }
+
+  doInsertText(text, row, col) {
+    const caret = this.caret;
+    row = defaultIfNull(row, caret.row);
+    col = defaultIfNull(col, caret.col);
+    const endCol = col + text.length;
+    this.history.push({
+      redo: () => {
+        this.content.insertText(row, col, text);
+        this.caret.setRowCol(row, endCol).ensureValid();
+      },
+      undo: () => {
+        // TODO: handle multiple line
+        this.content.deleteText(row, col, row, endCol);
+        this.caret.setRowCol(row, col).ensureValid();
       }
     });
   }
@@ -458,12 +477,14 @@ export default class Surface {
           this.caret.setCol(foundCol - 1);
         }
         break;
+      default:
+        break;
     }
   }
 
   replaceChars() {
     const range = this._getRange();
-    const chars = new Array(range[3] - range[1]).fill(op.target).join('');
+    const chars = new Array(range[3] - range[1]).fill(this.op.target).join('');
     const [row, col] = this.caret.rowcol();
     const text = this.content.text(...range);
     this.history.push({
@@ -654,6 +675,9 @@ export default class Surface {
       case '<c-l>':
         this.caret.incCol(1);
         return Feed.Handled;
+      case '<c-i>':
+        this.feedText('_');
+        return Feed.Handled;
       default:
         break;
     }
@@ -707,16 +731,16 @@ export default class Surface {
   inputModeBackspaceToHead() {
     const [row, col] = this.rowcol();
     const text = this.content.text(row, 0, row, col);
-    for (const _ of text) {
+    text.forEach(() => {
       this.feedKey('<bs>');
-    }
+    });
     this.updateUI();
   }
 
   indentLine(unindent) {
     const content = this.content;
     const caret = this.caret;
-    const [row, col] = caret.rowcol();
+    const row = caret.row;
     let redo = () => {
       content.insertText(row, 0, INDENT);
       caret.incCol(INDENT.length);
@@ -744,9 +768,11 @@ export default class Surface {
     if (type.startsWith('image')) {
       const file = item.getAsFile();
       console.log(file);
-      const fname = 'paste-image-test.png';
-      stomeAPI.upload(`/${fname}`, file, {overwrite: true});
-      this.feedText(`[/res/${fname}]`);
+      const nowStr = dateFormat(new Date(), 'yyyymmdd_HHMMss');
+      const fname = nowStr + '.png';
+      const fpath = `/note/${fname}`;
+      stomeAPI.upload(fpath, file, {overwrite: true});
+      this.feedText(`[/res/${fpath}]`);
     }
   }
 
@@ -932,7 +958,8 @@ export default class Surface {
     const inputChange = this.inputChange;
     const text = inputChange.text();
     if (text.indexOf('\n') === -1) {
-      const [left, top, _, bottom] = this.selection.blockRect();
+      // eslint-disable-next-line
+      const [left, top, right, bottom] = this.selection.blockRect();
       this.history.push({
         squashable: true,
         redo: () => {
@@ -1145,6 +1172,7 @@ export default class Surface {
     const founds = this.content.findAll(src);
     this.history.push({
       redo: () => {
+        // eslint-disable-next-line
         for (const [row, lineFounds, _] of founds) {
           let col = 0;
           const line = this.content.line(row);
@@ -1160,6 +1188,7 @@ export default class Surface {
       undo: () => {
         for (const [row, lineFounds] of founds) {
           const line = this.content.line(row);
+          // eslint-disable-next-line
           for (const [beg, end, text] of lineFounds) {
             line.deleteText(beg, beg + dst.length);
             line.insertText(beg, text);

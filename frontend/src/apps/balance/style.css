@@ -1,0 +1,96 @@
+.balance-container {
+  width: 80%;
+  background: white;
+  margin: 1em auto;
+  box-shadow: 0 0 5px #ccc;
+  padding: 2em;
+}
+
+.balance-container ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.8;
+}
+
+.balance-container .total {
+}
+
+.balance-container .details {
+  font-size: .9em;
+  position: relative;
+}
+
+.balance-container .day {
+  min-height: 2em;
+  margin-left: 20em;
+}
+
+.balance-container .expense-item .tag {
+  color: #ccc;
+}
+
+.balance-container .separator {
+  width: 100%;
+  border-bottom: 1px solid #eee;
+  margin: 1em 0;
+}
+
+.balance-container .details .date {
+  position: absolute;
+  left: 0;
+  color: #ccc;
+}
+
+.balance-container .details ul {
+  margin: 0;
+}
+
+.balance-container .range {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.balance-container .ranges .eno-button {
+  margin: 0 1px;
+}
+
+.balance-container .date-range {
+  margin-top: 1.4em;
+  text-align: right;
+}
+
+.balance-container .date {
+  padding: 0 1em;
+}
+
+.balance-container .control .slider {
+  margin: .5em;
+  margin-top: 2em;
+  width: 60%;
+}
+
+.balance-container .main-pie {
+  height: 800px;
+}
+
+.balance-container .pie-tops {
+  display: flex;
+  align-items: center;
+}
+
+.balance-container .pie-tops .pie-chart {
+  position: relative;
+}
+
+.balance-container .pie-tops .pie-chart .pie-back {
+  position: absolute;
+  left: 20px;
+  top: 40px;
+  z-index: 999;
+}
+
+.balance-container .pie-tops .tops {
+  font-size: .8em;
+}

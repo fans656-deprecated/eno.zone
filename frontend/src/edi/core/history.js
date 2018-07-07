@@ -1,4 +1,4 @@
-import { groupby } from './utils';
+import { groupby } from '../../util';
 
 export default class History {
   constructor(surface) {

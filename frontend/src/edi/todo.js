@@ -1,12 +1,9 @@
 `
 =============================== critical
+cc in last line
 =============================== major
 =============================== minor
 toggle preview (<c-d>)
-mouse selection
-underscore (ctrl-i)
-insert timestamp (;d)
-<c-p> auto completion
 M (match paren)
 visual indent/unindent (>> <<)
 =============================== bugs
@@ -17,17 +14,12 @@ bug: can't put last row to screen first row
 
 bug: scroll when long line wraps
 bug: visual replace with multiple line
-=============================== others
-upload (;u)
-paste image
-upload to specific dir (/note-imgs/20180620231957-1251.png)
+=============================== nice to have
 upload progress
+upload (;u)
+mouse selection
+<c-p> auto completion
 
-stome user home dir
-make stome show uploaded file
-`
-
-`
 =============================== DONE
 
 next buffer (;j)
@@ -44,4 +36,8 @@ visual replace
 toggle uppercase (~)
 bug: insert newline with previous indent
 instant search caret move
+paste image
+upload to specific dir (/note-imgs/20180620231957-1251.png)
+insert timestamp (;d)
+underscore (ctrl-i)
 `
