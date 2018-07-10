@@ -1,0 +1,41 @@
+admin panel
+
+project
+  devlog
+  bug
+  todo
+  test plan
+
+category
+  diary
+  blog
+  leetcode
+  jira
+  books
+
+encrypted note
+
+Move all files to stome
+  files/...
+  sina images
+  xiami music
+  youku video
+
+Search
+Custom url
+
+App: clipboard
+  curl file
+  paste image
+  paste text
+App: gallery
+App: music
+App: videos
+App: graph (with stack (with history))
+App: todo (based on graph?)
+
+App: books
+App: leetcode statistics (react-echarts)
+
+DONE:
+jizhang

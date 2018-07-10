@@ -5,6 +5,24 @@ import Cookies from 'js-cookie';
 import conf from './conf';
 import User from './User';
 
+export function warn(message, ...args) {
+  console.log('WARNING: ' + message, ...args);
+}
+
+export function error(message, ...args) {
+  console.log('ERROR: ' + message, ...args);
+}
+
+export function _debug(message, ...args) {
+  console.log('DEBUG: ' + message, ...args);
+}
+
+export const debug = {
+  warn: warn,
+  error: error,
+  debug: _debug,
+};
+
 export async function fetchJSON(method, url, data) {
   let options;
   [url, options] = prepareFetch(method, url, data);

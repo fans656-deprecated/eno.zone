@@ -1,5 +1,6 @@
 import qs from 'query-string';
 
+import { debug } from './util';
 import conf from './stome/conf';
 
 //eslint-disable-next-line
@@ -20,6 +21,14 @@ globalScope.addEventListener('activate', (ev) => {
 globalScope.addEventListener('message', (ev) => {
   const message = ev.data;
   const op = message.op;
+  if (!op) {
+    debug.error('service worker received invalid message: no `op` specified', message);
+    return;
+  }
+  // used in ./stome/Explorer.js
+  // when double click on file, meta is already known
+  // so no need to request backend for it
+  // instead add it here then following url request can use
   if (op === 'add-download-config') {
     addDownloadConfig(message);
   }
@@ -34,30 +43,40 @@ globalScope.addEventListener('fetch', async (ev) => {
   const method = request.method;
   if (method !== 'GET') {
     // only handle request like GET /res/img/girl.jpg?width=32
+    debug.debug('GET request is pass through', request);
     return;
   }
   const url = new URL(request.url);
   if (url.host !== location.host) {
     // only handle same host
+    debug.debug('Other origin request is pass through', request);
     return;
   } else if (!url.pathname.startsWith(conf.stomePrefixWithSlash)) {
     // only handle path starts with '/res/'
     // this leave '/res' to stome UI
+    debug.debug('Non res request is pass through', request);
     return;
   }
   const params = qs.parse(url.search.substring(1));
   if ('op' in params) {
     // leave request like /res/img?op=ls
+    debug.debug('Request with op is pass through', request);
+    return;
+  }
+  if ('no-sw' in params) {
+    debug.debug('Request with no-sw is pass through', request);
     return;
   }
   const downloadConfig = urlToDownloadConfig[url];
   if (downloadConfig) {
+    debug.debug('has downloadConfig', downloadConfig);
     const {meta, content} = downloadConfig;
     ev.respondWith(new Promise(async (resolve) => {
-      const res = getResponse(meta, content);
+      const res = await getResponse(meta, content);
       resolve(res);
     }));
   } else {
+    debug.debug('no downloadConfig', request);
     const path = url.pathname.substring(conf.stomePrefix.length);
     ev.respondWith(new Promise(async (resolve) => {
       const meta = await getNodeMeta(path);
@@ -68,17 +87,22 @@ globalScope.addEventListener('fetch', async (ev) => {
         });
         resolve(res);
       } else {
-        // TODO: don't download dir
-        const content = await getQiniuContent(meta);
-        const res = getResponse(meta, content);
-        resolve(res);
+        console.log('try download', meta);
+        if (meta.listable) {
+          // e.g. /res/home
+          const rewrittenUrl = url + ('?' in url ? '&no-sw' : '?no-sw');
+          resolve(await fetch(rewrittenUrl));
+        } else {
+          const content = await getQiniuContent(meta);
+          const res = getResponse(meta, content);
+          resolve(res);
+        }
       }
     }));
   }
 });
 
 function addDownloadConfig(message) {
-  console.log(message);
   const meta = message.meta;
   const config = getClientDownloadConfig(meta);
   if (config) {
@@ -113,6 +137,7 @@ function getStream(content) {
     start: async (controller) => {
       for (let chunk of content.chunks) {
         const url = await getDownloadUrl(content, chunk);
+        console.log('getStream', url);
         await enqueueChunkData(controller, url);
       }
       controller.close();
@@ -132,7 +157,8 @@ async function getDownloadUrl(content, chunk) {
         md5: content.md5,
         storage_id: content.storage_id,
         path: chunk.path,
-      })
+      }),
+      credentials: 'include',
     }
   );
   return (await res.json()).url;

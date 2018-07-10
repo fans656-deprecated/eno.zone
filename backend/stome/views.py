@@ -13,7 +13,8 @@ from . import util
 from . import store
 from . import filesystem
 from .user import User
-from .error import Error, NotFound, Conflict
+from .error import Error, NotFound, Conflict, PermissionDenied
+import util as enozone_util
 
 
 PREFIX = '/res'
@@ -75,6 +76,18 @@ def guarded(viewfunc):
     return decorated_viewfunc
 
 
+def require_owner_login(viewfunc):
+    @functools.wraps(viewfunc)
+    def wrapper(*args, **kwargs):
+        visitor = get_visitor()
+        # currently only me
+        if not visitor or visitor['username'] != 'fans656':
+            print visitor, 'Unauthorized'
+            return ('Unauthorized', 401)
+        return viewfunc(*args, **kwargs)
+    return wrapper
+
+
 @guarded
 def head_path(path=''):
     """Return 200 if path exists else 404"""
@@ -116,15 +129,14 @@ def get_path(path=''):
         GET /?api
     """
     visitor = get_visitor()
-    if path.startswith('static/') or path == 'sw.js':
-        return handle_static_resource(path)
-    elif request.args:
+    if is_api_request():
         return handle_get_api(visitor, path)
     else:
         return handle_get_node(visitor, path)
 
 
 @guarded
+@require_owner_login
 def put_path(path='/'):
     """
     + Create/Update storage
@@ -167,6 +179,7 @@ def put_path(path='/'):
 
 
 @guarded
+@require_owner_login
 def post_path(path=''):
     """
     + Create directory
@@ -233,6 +246,7 @@ def post_path(path=''):
 
 
 @guarded
+@require_owner_login
 def delete_path(path):
     """
     Delete file/directory
@@ -264,6 +278,12 @@ def handle_static_resource(path):
     return send_from_directory(conf.frontend_path, path)
 
 
+def is_api_request():
+    if request.args:
+        return not (len(request.args) == 1 and 'no-sw' in request.args)
+    return False
+
+
 def handle_get_api(visitor, path):
     if 'api' in request.args:
         return render_template('api.html')
@@ -277,6 +297,9 @@ def handle_get_api(visitor, path):
     node = filesystem.get_node(visitor, path)
     if not node:
         raise NotFound(path)
+    print visitor['username'], repr(path), node.readable
+    if not node.readable:
+        raise PermissionDenied(path)
 
     op = request.args.get('op')
     if op == 'meta':
@@ -361,15 +384,22 @@ def query_transfer_info(visitor, node):
 
 
 def get_visitor():
-    user = {'username': 'root'}
-    #try:
-    #    token = request.headers['authorization'].split(' ')[1]
-    #    user = jwt.decode(token, conf.auth_pubkey, algorithm='RS512')
-    #    if not fsutil.get_home_dir(user).exist:
-    #        fsutil.create_home_dir_for(user)
-    #except Exception as e:
-    #    user = {'username': 'guest'}
+    try:
+        token = request.cookies.get('token')
+        user = jwt.decode(token, conf.auth_pubkey, algorithm='RS512')
+    except Exception:
+        user = {'username': 'guest'}
     return User(user)
+    #user = {'username': 'root'}
+    #print request.headers
+    ##try:
+    ##    token = request.headers['authorization'].split(' ')[1]
+    ##    user = jwt.decode(token, conf.auth_pubkey, algorithm='RS512')
+    ##    if not fsutil.get_home_dir(user).exist:
+    ##        fsutil.create_home_dir_for(user)
+    ##except Exception as e:
+    ##    user = {'username': 'guest'}
+    #return User(user)
 
 
 def get_dst_node(src, to):

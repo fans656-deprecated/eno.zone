@@ -53,6 +53,7 @@ export const api = {
     const options = {
       method: method,
       headers: headers,
+      credentials: 'include',
     };
     if (data) {
       options.body = JSON.stringify(data);

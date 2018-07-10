@@ -24,6 +24,10 @@ export default class Note {
     return `/note/${this.id()}`;
   }
 
+  type() {
+    return this.note.type;
+  }
+
   update = async () => {
     await this.fetch(this.note.owner, this.note.id);
   }

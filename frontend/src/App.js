@@ -2,7 +2,6 @@ import React from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import $ from 'jquery';
 
-import Todo from './todo';
 import Header from './Header';
 import Footer from './Footer';
 import Login from './Login';
@@ -37,6 +36,7 @@ class App extends React.Component {
         path = '/';
       }
       return <Explorer
+        visitor={visitor}
         rootPath={'/'}
         currentPath={path}
       />;
@@ -48,10 +48,6 @@ class App extends React.Component {
         />
         <main id="main">
           <Switch>
-            <Route exact path='/todo'
-              render={() => <Todo/>}
-            />
-            
             <Route exact path='/'
               render={() => <NoteList owner={owner} visitor={visitor}/>}
             />

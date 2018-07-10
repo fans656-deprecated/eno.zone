@@ -36,6 +36,7 @@ def success_response(data=None):
         data = {'detail': data}
     return jsonify(**data)
 
+
 def error_response(detail, status_code=400):
     if isinstance(detail, dict):
         data = detail
@@ -96,19 +97,27 @@ def get_visitor():
 
 
 def get_owner():
-    domain = request.host.split(':')[0]
-    labels = domain.split('.')
-    if len(labels) > 2:
-        username = labels[0]
-        return {
-            'username': username,
-        }
-    else:
-        return None
+    # currently the site is only for me
+    return {
+        'username': 'fans656'
+    }
+    #domain = request.host.split(':')[0]
+    #labels = domain.split('.')
+    #if len(labels) > 2:
+    #    username = labels[0]
+    #    return {
+    #        'username': username,
+    #    }
+    #else:
+    #    return None
 
 
 def is_owner(visitor, owner):
     return visitor and owner and visitor['username'] == owner['username']
+
+
+def is_visitor_owner():
+    return is_owner(get_visitor(), get_owner())
 
 
 def require_owner_login(viewfunc):

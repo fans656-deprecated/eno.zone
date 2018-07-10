@@ -6,7 +6,10 @@ import auther
 
 
 def get_note(note_id):
-    return util.success_response(noter.get_note(note_id))
+    note = noter.get_note(note_id)
+    if '.' in note['tags'] and not util.is_visitor_owner():
+        return util.error_response('Unauthorized')
+    return util.success_response(note)
 
 
 def get_notes():

@@ -61,7 +61,7 @@ class AccessControlledNode(object):
             return True
         if visitor.own(self.node) and self.owner_readable:
             return True
-        if node.group in visitor.groups and self.group_readable:
+        if self.node.group in visitor.groups and self.group_readable:
             return True
         if self.other_readable:
             return True
@@ -187,6 +187,8 @@ class AccessControlledNode(object):
         return meta
 
     def get_content_stream(self):
+        if not self.readable:
+            raise PermissionDenied(self.path)
         node = self.node
         if not node.has_content:
             raise ResourceError('Not file', self.path)

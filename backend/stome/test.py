@@ -8,6 +8,6 @@ from tests.prepare import *
 
 
 
-#init()
+init()
 node = get_node(root_user, '')
 print bool(node)

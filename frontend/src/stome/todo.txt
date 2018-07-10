@@ -1,7 +1,3 @@
-import React from 'react'
-
-const todo = `\
-
 Select all (ctrl-a)
 
 Sized image
@@ -35,6 +31,9 @@ Image view
 
 Arrow keys to navigate selection
 
+.shadowsocks.json
+  wget with password
+
 ====================== DONE
 
 <Del> to delete
@@ -42,15 +41,3 @@ Arrow keys to navigate selection
 Global upload function
 
 Directory size
-`;
-
-const Todo = () => (
-  <div style={{
-    margin: '2em',
-  }}>
-    <h1>TODO</h1>
-    <pre>{todo}</pre>
-  </div>
-)
-
-export default Todo;

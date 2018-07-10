@@ -1,21 +1,19 @@
 import React from 'react';
 import ReactEcharts from 'echarts-for-react';
 import _ from 'lodash';
-import $ from 'jquery';
 import 'jquery-ui-bundle';
 import 'jquery-ui-bundle/jquery-ui.css';
 
+import App from '../app';
 import { Button } from '../../common';
 import { Display } from '../../constants';
 import Balance from './balance';
 import './style.css';
 import { interlace } from '../../util';
 
-export default class BalanceComponent extends React.Component {
+export default class BalanceComponent extends App {
   constructor(props) {
     super(props);
-    this.env = props.env;
-    this.note = props.note;
 
     const note = this.note.note;
     this.balance = new Balance(null, {
@@ -55,20 +53,7 @@ export default class BalanceComponent extends React.Component {
     this.update();
   }
 
-  render() {
-    switch (this.env.display) {
-      case Display.InNote:
-      case Display.InList:
-        return <h1><a href={this.note.href()}>App: Balance</a></h1>;
-      default:
-        if (!this.balance.nDays) {
-          return <h1>No data available</h1>;
-        }
-        return this.renderFull();
-    }
-  }
-
-  renderFull() {
+  renderSingle() {
     const balance = this.balance;
     const dayComps = balance.rangeDays().map(this.renderDay);
     const detailItems = interlace(dayComps, (_, i) => (

@@ -1019,3 +1019,48 @@ note可以请求后端api，所以可以有各种整合类的note，比如整合
 
 
 不过，接下来很现实的，，得先把edi的ctrl-c ctrl-v和dd paste之类的整好
+
+2018-07-07 23:45:54
+记账app完成，效果还是很不错的
+下来还有好几个app可以写，，目前来说最利于探索技术可行性的就是books
+
+单个note，single view的时候是个阅读器
+list view的时候是封面加一些信息
+item view的时候是一个小封面+链接
+
+另外有shelf，用来整合多本书
+还有shelves' shelf，用来整合多个shelf
+shelf可以手动指定放哪本书，也可以自动根据tag获取
+
+这么一套下来，note的大部分机制就都走了一遍了
+
+2018-07-08 22:50:42
+stome的备份可以用aws的glacier，好像说是1T $10每月，还能接受——2T是120块钱
+
+2018-07-09 01:00:29
+note的公开性分类：
+
+    public
+    private
+        unecrypted
+        encrypted
+    group
+
+2018-07-09 01:42:05
+note categories:
+
+    all
+    blog
+    diary
+    leetcode
+    algorithms
+    gallery
+    book
+    video
+    music
+    album
+    data (bank-card / password / .shadowsocks.json)
+    project
+    other
+        clipboard
+        balance

@@ -1,4 +1,6 @@
+const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 const config = {
   // multiple entries so 'sw.js' can use import
@@ -12,6 +14,7 @@ const config = {
     // if put at "/static/js/sw.js", postMessage will break
     // (don't know why though)
     filename: '[name].js',
+    path: path.resolve(__dirname, 'build'),
     publicPath: '/',
   },
   plugins: [
@@ -21,6 +24,7 @@ const config = {
       inject: false,
       template: 'public/index.html',
     }),
+    new ExtractTextPlugin("styles.css"),
   ],
   devServer: {
     // so katex woff2 fonts won't be referenced like
