@@ -2,6 +2,7 @@ import React from 'react';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import $ from 'jquery';
 
+import Admin from './Admin';
 import Header from './Header';
 import Footer from './Footer';
 import Login from './Login';
@@ -40,6 +41,12 @@ class App extends React.Component {
         rootPath={'/'}
         currentPath={path}
       />;
+    }
+    switch (pathname) {
+      case '/admin':
+        return <Admin visitor={visitor}/>;
+      default:
+        break;
     }
     return (
       <div id="root-page" className="ez">

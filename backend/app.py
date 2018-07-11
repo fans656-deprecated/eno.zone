@@ -18,8 +18,9 @@ def get_service_worker():
 
 
 for method, path, viewfunc in endpoints:
-    viewfunc = util.handle_exceptions(viewfunc)
+    viewfunc = util.guarded(viewfunc)
     app.route(path, methods=[method])(viewfunc)
+
 for viewfunc, method_paths in stome_endpoints.items():
     routed = viewfunc
     for method, path in method_paths:

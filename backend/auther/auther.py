@@ -8,6 +8,7 @@ import datetime
 import jwt
 import pymongo
 
+import db
 import conf
 
 
@@ -30,15 +31,15 @@ def get_token(username, password):
 def create_user(user):
     if not is_valid(user):
         return False
-    return getdb().user.insert_one(normalized(user)).acknowledged
+    return db.getdb().user.insert_one(normalized(user)).acknowledged
 
 
 def get_users():
-    return list(getdb().user.find({}, {'_id': False}))
+    return list(db.getdb().user.find({}, {'_id': False}))
 
 
 def delete_user(username):
-    return getdb().user.remove({'username': username})['n'] == 1
+    return db.getdb().user.remove({'username': username})['n'] == 1
 
 
 def is_user_exists(username):
@@ -46,7 +47,7 @@ def is_user_exists(username):
 
 
 def get_user(username):
-    user = getdb().user.find_one({'username': username})
+    user = db.getdb().user.find_one({'username': username})
     if user:
         del user['_id']
     return user
@@ -61,10 +62,6 @@ def populate_db():
             user,
             upsert=True
         )
-
-
-def getdb():
-    return db
 
 
 def is_valid(user):
@@ -94,6 +91,3 @@ def gen_salt():
 def get_hashed_password(password, salt, iterations=100000):
     hashed_pwd = hashlib.pbkdf2_hmac('sha256', password, salt, iterations)
     return binascii.hexlify(hashed_pwd)
-
-
-db = pymongo.MongoClient().fme

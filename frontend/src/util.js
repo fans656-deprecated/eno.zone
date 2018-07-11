@@ -17,11 +17,22 @@ export function _debug(message, ...args) {
   console.log('DEBUG: ' + message, ...args);
 }
 
-export const debug = {
-  warn: warn,
-  error: error,
-  debug: _debug,
-};
+export let debug;
+const DEBUG_ON = false;
+if (DEBUG_ON) {
+  debug = {
+    warn: warn,
+    error: error,
+    debug: _debug,
+  };
+} else {
+  debug = {
+    warn: () => null,
+    error: () => null,
+    debug: () => null,
+  };
+}
+export const logger = debug;
 
 export async function fetchJSON(method, url, data) {
   let options;

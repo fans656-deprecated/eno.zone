@@ -7,6 +7,7 @@ import conf from './stome/conf';
 const globalScope = self;
 const location = globalScope.location;
 const origin = location.origin;
+conf.origin = origin;
 
 const urlToDownloadConfig = {};
 
@@ -87,7 +88,6 @@ globalScope.addEventListener('fetch', async (ev) => {
         });
         resolve(res);
       } else {
-        console.log('try download', meta);
         if (meta.listable) {
           // e.g. /res/home
           const rewrittenUrl = url + ('?' in url ? '&no-sw' : '?no-sw');
@@ -116,7 +116,7 @@ function getClientDownloadConfig(meta) {
   );
   if (content) {
     return {
-        url: encodeURI(origin + conf.stomePrefix + meta.path),
+        url: encodeURI(conf.origin + conf.stomePrefix + meta.path),
         meta: meta,
         content: content,
     };
@@ -137,7 +137,6 @@ function getStream(content) {
     start: async (controller) => {
       for (let chunk of content.chunks) {
         const url = await getDownloadUrl(content, chunk);
-        console.log('getStream', url);
         await enqueueChunkData(controller, url);
       }
       controller.close();

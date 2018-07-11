@@ -1,5 +1,6 @@
 # coding: utf-8
 import os
+import json
 import random
 import functools
 import traceback
@@ -19,11 +20,14 @@ import conf
 import auther
 
 
-def handle_exceptions(viewfunc):
+def guarded(viewfunc):
     @functools.wraps(viewfunc)
     def wrapper(*args, **kwargs):
         try:
-            return viewfunc(*args, **kwargs)
+            res = viewfunc(*args, **kwargs)
+            if isinstance(res, dict):
+                res = json.dumps(res)
+            return res
         except Exception as e:
             return error_response(e)
     return wrapper
@@ -128,6 +132,17 @@ def require_owner_login(viewfunc):
         if not visitor or visitor['username'] != owner['username']:
             return util.error_response(
                 'you are not "{}"'.format(conf.owner), 403)
+        return viewfunc(*args, **kwargs)
+    return wrapper
+
+
+def require_admin_login(viewfunc):
+    @functools.wraps(viewfunc)
+    def wrapper(*args, **kwargs):
+        visitor = get_visitor()
+        # TODO: check if visitor is in 'root' group
+        if visitor['username'] != 'fans656':
+            return error_response('you are not admin', 401)
         return viewfunc(*args, **kwargs)
     return wrapper
 

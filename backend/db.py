@@ -10,9 +10,7 @@ def getdb(g={}):
 if __name__ == '__main__':
     db = getdb()
 
-    r = db.note.find({})
-    a = list(r)
-    for note in a:
-        if note['type'] != 'markdown':
-            print note
-            break
+    r = db.user.find({})
+    for user in r:
+        del user['_id']
+        print user

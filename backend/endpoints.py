@@ -20,9 +20,12 @@ endpoints = [
     ('PUT', '/api/note/<int:note_id>', view.note.put_note),
     ('DELETE', '/api/note/<int:note_id>', view.note.delete_note),
 
-    ## comment
+    # comment
     ('POST', '/api/note/<int:note_id>/comment', view.note.post_comment),
     ('DELETE', '/api/note/<int:note_id>/comment/<int:comment_id>', view.note.delete_comment),
+
+    # admin
+    ('GET', '/api/admin/users', view.admin.get_users),
 
     ## --------------------------------------------------
 

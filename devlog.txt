@@ -1064,3 +1064,15 @@ note categories:
     other
         clipboard
         balance
+
+2018-07-10 09:01:19
+Clean up service worker
+
+[Task]
+Clean up service worker (sw.js)
+    1. Refactor to support multiple fetch catchers
+    2. Add logger statments
+    3. Add error handling code
+
+2018-07-10 09:49:46
+why hard refresh on /res page will result sw no controller?

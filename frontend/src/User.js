@@ -17,6 +17,11 @@ export default class User {
     return this.username === this.owner.username;
   }
 
+  isAdmin() {
+    // TODO: check if in 'root' group instead
+    return this.username === 'fans656';
+  }
+
   logout = () => {
     Cookies.remove('token');
     window.location.href = '/';

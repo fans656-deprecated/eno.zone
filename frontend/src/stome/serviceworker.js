@@ -1,3 +1,5 @@
+import { logger } from '../util';
+
 export async function registerServiceWorker() {
   if ('serviceWorker' in navigator) {
     const previousRegistrations = await navigator.serviceWorker.getRegistrations();
@@ -9,7 +11,8 @@ export async function registerServiceWorker() {
     try {
       await navigator.serviceWorker.register('/sw.js');
     } catch (e) {
-      console.log(e);
+      logger.error('register sw failed', e);
+      return false;
     }
     return true;
   } else {
@@ -25,7 +28,7 @@ export async function sendMessage(message) {
     };
     const controller = navigator.serviceWorker.controller;
     if (!controller) {
-      console.log('nocontroller', navigator.serviceWorker);
+      logger.error('nocontroller', navigator.serviceWorker);
       return;
     }
     navigator.serviceWorker.controller.postMessage(
