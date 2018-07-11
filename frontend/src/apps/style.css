@@ -1,2 +1,6 @@
-.stock p {
+.stock .buy-detail {
+  border: 1px solid #ccc;
+  padding: 2em;
+  font-size: .8em;
+  font-family: Consolas;
 }

@@ -1,0 +1,26 @@
+.admin {
+  margin: 2em;
+}
+
+.admin *, .admin input {
+  font-family: Consolas;
+}
+
+.admin input {
+  padding: .4em;
+  outline: none;
+}
+
+.admin input[readonly] {
+  background: #eee;
+}
+
+.admin .user {
+  margin-bottom: 1em;
+  border: 1px solid #ccc;
+  padding: 1em;
+}
+
+.admin .users {
+  display: flex;
+}

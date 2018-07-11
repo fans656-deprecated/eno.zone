@@ -42,12 +42,6 @@ class App extends React.Component {
         currentPath={path}
       />;
     }
-    switch (pathname) {
-      case '/admin':
-        return <Admin visitor={visitor}/>;
-      default:
-        break;
-    }
     return (
       <div id="root-page" className="ez">
         <Header user={visitor}
@@ -55,6 +49,10 @@ class App extends React.Component {
         />
         <main id="main">
           <Switch>
+            <Route exact path='/admin'
+              render={() => <Admin owner={owner} visitor={visitor}/>}
+            />
+
             <Route exact path='/'
               render={() => <NoteList owner={owner} visitor={visitor}/>}
             />

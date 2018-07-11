@@ -1,6 +1,10 @@
 import React from 'react';
+import $ from 'jquery';
+import 'jquery-ui-bundle';
+import 'jquery-ui-bundle/jquery-ui.css';
 
 import { fetchJSON } from './util';
+import './admin.css';
 
 export default class Admin extends React.Component {
   async componentDidMount() {
@@ -12,7 +16,9 @@ export default class Admin extends React.Component {
     this.users = res.users;
 
     this.loaded = true;
-    this.setState({});
+    this.setState({}, () => {
+      $('.admin').tabs();
+    });
   }
 
   render() {
@@ -24,20 +30,57 @@ export default class Admin extends React.Component {
     }
     const userComps = this.users.map(this.renderUser);
     return (
-      <div>
-        <h1>this is the admin page</h1>
-        <div className="users">{userComps}</div>
+      <div className="admin">
+        <ul>
+          <li><a href="#users">Users</a></li>
+        </ul>
+        <div id="users">
+          <div className="users">{userComps}</div>
+        </div>
       </div>
     );
   }
 
   renderUser(user, key) {
     return (
-      <div key={key}>
-        <pre>
-          {JSON.stringify(user, null, 2)}
-        </pre>
+      <div key={key} className="user">
+        <Field name="username" value={user.username} readonly={true}/>
+        <Field name="hashed_password" value={user.hashed_password} readonly={true}/>
+        <Field name="salt" value={user.salt} readonly={true}/>
+        <Field name="ctime" value={user.ctime} readonly={true}/>
+        <Field name="groups" value={user.groups}/>
+        {user.avatar_url &&
+            <Field name="avatar_url" value={user.avatar_url}/>
+        }
       </div>
     );
   }
+}
+
+const Field = (props) => {
+  const name = props.name;
+  const value = props.value;
+  const readonly = props.readonly;
+  return (
+    <div
+      style={{
+        fontSize: '.8em',
+      }}
+    >
+      <span
+        style={{
+          width: '8em',
+          display: 'inline-block',
+          textAlign: 'right',
+        }}
+      >{name}</span>&nbsp;
+      <input
+        defaultValue={value}
+        readOnly={readonly}
+        style={{
+          width: '40em',
+        }}
+      />
+    </div>
+  );
 }
