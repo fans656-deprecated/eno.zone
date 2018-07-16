@@ -1,2 +1,2 @@
 #!/bin/bash
-HTTPS=true PORT=3000 npm run start
+sudo HTTPS=true PORT=443 npm run start

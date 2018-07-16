@@ -1076,3 +1076,281 @@ Clean up service worker (sw.js)
 
 2018-07-10 09:49:46
 why hard refresh on /res page will result sw no controller?
+
+2018-07-13 08:40:44
+usecases:
+    diary
+    [desktop]
+        [naitive}
+            videos
+        [web]
+            clipboard
+            blog
+    [mobile]
+        balance
+        todo
+
+2018-07-13 09:11:51
+************************************************************ REQUIREMENTS
+
+CORE-1 User management
+
+CORE-2 Note management
+
+CORE-3 File management
+
+CORE-4 Server (flask)
+
+USER-1 Add user group
+    Any user can create (non-existed) group then edit group members
+
+NOTE-1 History version
+    By using binary diff maybe.
+    Versions should have tag for actions like:
+        auto-save
+        post (;q)
+        user-write (;w)
+    There should be check if there's really a diff with previous version
+
+NOTE-2 Map JSON back to note.metaContent
+    Related: MISC-1
+
+NOTE-3 Save locally when no network
+    Then sync when network is back
+
+NOTE-4 Auto save
+
+NOTE-5 Container note
+    Container like in:
+        1. Note list
+        2. Single view
+    I.e. those kind of note will only render a e.g. shadow-boxed rect,
+    actual note is rendered inside it.
+    So user can customize it's e.g. width, then don't have to write HTML for
+    every client render note (e.g. Balance),
+    instead this can be specified in note meta like:
+        container: wider
+    (normal/wide/wider)
+
+BAL-1 Balance
+    User can edit balance data, and view the statistics
+
+BAL-2 Edit balance data
+    User can edit raw text data, sample like:
+		2018-07-10
+			-28 顺口溜 {eat}
+			-36 肯德基 {eat}
+		2018-07-11
+			-33 苏氏牛肉面 {eat}
+			-24 顺口溜 {eat}
+		2018-07-12
+			-51 喜家德 {eat}
+			-25 魏家凉皮 {eat}
+
+BAL-3 [Mobile] Edit balance data
+    User can add a item including info:
+        1. Item description (e.g. "顺口溜")
+        2. Item category (e.g. "eat")
+    The timestamp will be auto recorded, but editable
+
+BAL-4 View balance statistics
+    User can view balance statistics, such as:
+        1. The total expense in specified date range.
+        2. The percentage of each category expense.
+
+BAL-5 Where is my money
+    Record places where I have money in it.
+    For example:
+        1. Bank card
+        2. Credit card
+        3. ADA (Daedalus)
+        4. Stock (Yingying, myself)
+
+PRJ-1 Project
+
+PRJ-2 Project board
+
+PRJ-3 JIRA
+
+PRJ-4 Test plan
+
+IMG-1 Timely screen capture
+
+IMG-2 Sync to cloud
+    A local service/script, sync if necessary by calculating time/md5
+
+IMG-3 Hide some private pics
+    Some are not visible by default (e.g. AV)
+    Some require password to unencrypt (e.g. personal sensitive)
+
+BAK-1 Backup version
+
+MISC-1 New note of type XXX
+    UI links to change note type to
+        1. Blog
+        2. Diary
+        3. Todo
+    Those links could be placed at edit page, when clicked,
+    will change the note meta.
+
+MISC-2 Quick links
+
+MISC-3 Note list filter
+    For example:
+        1. Diary
+        2. Blog
+        3. Books
+        4. Music
+        5. Video
+    Might in link form (left nav)
+    The left nav could be a note (of type "nav"), specified in user preference,
+    and rendered specially (i.e. on homepage)
+
+MISC-4 Top nav as note
+
+MISC-5 Edit icon on right panel
+    For long note, edit icon at bottom is inconvenient.
+    Note list might have sticky edit icon too.
+
+MISC-6 Domain name as user home
+    404 when no such user
+    Examples:
+        fans656.eno.zone
+        twiispa.eno.zone
+        tyn.eno.zone/portal
+
+MISC-7 Custom domain name
+    For example:
+        fans656.me => fans656.eno.zone
+
+MISC-8 Custom URL
+    fans656.me/portal
+    fans656.me/project/eno-zone/investigation/custom-domain
+
+MISC-9 Create note at arbitary URL
+    For example, when navigate to a non-exist page like
+        fans656.me/project/eno-zone/investigation
+    Prompt actions to:
+        1. Create a new note
+        2. Link to a existing note
+
+MISC-10 Crumb nav
+    For example:
+        project => eno-zone => investigation
+
+MISC-11 Rich comment
+    Use markdown
+
+MISC-12 Inheritable note permissions
+    So multiple user can view/edit notes as a master note's descendants
+    With history version, one can revert if others mis-edited.
+
+MISC-13 Test sub-domain as user space (DONE)
+
+MISC-14 Test custom domain (DONE)
+
+TEST-1 User login/logout
+    Pre-conditions:
+        1. User is logged in
+
+TEST-2 Setup a Jenkins server
+
+************************************************************
+
+web
+    backend
+        user
+            password
+            group
+        note
+        file
+            image (sized)
+            music
+            video (m3u8)
+        server
+        db
+        backup
+
+2018-07-15 01:13:17
+发现了好几种东西都需要access control:
+    user
+    group
+    note
+    comment
+    file
+
+整理一下
+
+    user
+        query user info
+            public => readable by everyone
+                username
+                avatar_url
+            protected => readable by self and admin
+                hashed_password
+                salt
+            private => readable by self
+                ???
+        edit user info
+            protected => writable by self and admin
+                username
+                avatar_url
+            private => writable by self
+                ???
+            constant => writable by no-one
+                hashed_password
+                salt
+        delete user
+            protected => writable by self and admin
+    
+    group
+    
+    note
+    
+    comment
+    
+    file
+
+fields
+
+    user
+        owner: self admin
+        group: self admin
+    group
+        owner: self admin
+        group: self admin
+    note
+        owner: self
+
+2018-07-15 13:17:12
+
+eno.zone (without log in)
+    will show everyone's home timeline, sorted by datetime
+
+eno.zone (logged in)
+    will show followees' home timeline, sorted by datetime
+
+fans656.eno.zone (without log in)
+
+2018-07-15 14:34:54
+实验了一下，flask可以拿到sub-domain信息，HTTPS也是OK的
+然后fans656.xyz可以指向fans656.eno.zone
+
+所以用域名区分用户空间，以及用户自定义域名都是ok的
+
+2018-07-15 22:52:18
+还是先放弃多用户吧
+
+考虑一下header, footer, collection之类的都用note来定义
+
+    header
+        /header?edit
+    collection
+        /leetcode?edit
+        /blog?edit
+
+然后，在特定collection下new note的时候自动填上相应的type或tag
+比如diary
+    tag: diary
+比如book
+    type: book

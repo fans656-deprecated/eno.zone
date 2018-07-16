@@ -25,7 +25,11 @@ export default class Editor {
 
     this.mode = null;
     this.activeSurface = null;
-    this.switchToNormalMode();
+    if (this.contentSurface.isIn(Mode.Normal)) {
+      this.switchToNormalMode();
+    } else {
+      this.switchToInputMode();
+    }
   }
 
   open(fname, text) {

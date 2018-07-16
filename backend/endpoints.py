@@ -4,30 +4,45 @@ import view
 import stome
 
 endpoints = [
-    # login
+    # ----------------------------------------------------- user
+
     ('POST', '/api/login', view.user.post_login),
     ('POST', '/api/signup', view.user.post_signup),
+    ('GET', '/api/logout', view.user.get_logout),
+    ('GET', '/api/user/<username>', view.user.get_user),
+    ('PUT', '/api/user/<username>', view.user.put_user_info),
 
-    # profile
-    #('POST', '/profile/<username>/avatar', view_user.post_avatar),
+    ('DELETE', '/api/admin/user/<username>', view.user.delete_user),
+    ('GET', '/api/admin/users', view.admin.get_users),
 
-    # -------------------------------------------------- view_blog
+    # ----------------------------------------------------- group
 
-    # note
+    #('GET', '/api/group', view.group.get_groups),
+    #('GET', '/api/group/<group_name>', view.group.get_group),
+    #('POST', '/api/group/<group_name>', view.group.create_group),
+    #('POST', '/api/group/<group_name>/add-user/<username>', view.group.add_user_to_group),
+    #('DELETE', '/api/group/<group_name>/delete-user/<username>', view.group.delete_user_from_group),
+
+    # ----------------------------------------------------- note
+
     ('GET', '/api/note/<int:note_id>', view.note.get_note),
     ('GET', '/api/note', view.note.get_notes),
+    ('POST', '/api/query-note', view.note.query_note),
+    ('POST', '/api/query-notes', view.note.query_notes),
     ('POST', '/api/note', view.note.post_note),
     ('PUT', '/api/note/<int:note_id>', view.note.put_note),
     ('DELETE', '/api/note/<int:note_id>', view.note.delete_note),
 
-    # comment
+    # ----------------------------------------------------- comment
+
     ('POST', '/api/note/<int:note_id>/comment', view.note.post_comment),
     ('DELETE', '/api/note/<int:note_id>/comment/<int:comment_id>', view.note.delete_comment),
 
-    # admin
-    ('GET', '/api/admin/users', view.admin.get_users),
+    # ----------------------------------------------------- file
 
-    ## --------------------------------------------------
+    # use stome instead
+
+    # -----------------------------------------------------
 
     ## read
     #('GET', '/api/read/<int:blog_id>', view_read.get_read),
@@ -44,6 +59,9 @@ endpoints = [
 
     #('GET', '/static/<path:path>', view_misc.get_static),
     #('GET', '/file/<path:path>', view_misc.get_file),
+
+    # profile
+    #('POST', '/profile/<username>/avatar', view_user.post_avatar),
 ]
 
 stome_endpoints = {

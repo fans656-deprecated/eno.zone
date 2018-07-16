@@ -73,7 +73,7 @@ class Pagination extends React.Component {
       <input
         id="current-page"
         type="text"
-        value={this.state.page}
+        value={this.state.page == null ? 1 : this.state.page}
         onChange={this.onCurrentPageInputChange}
         onKeyUp={this.onKeyUp}
       />

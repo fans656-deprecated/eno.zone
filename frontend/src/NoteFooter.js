@@ -72,7 +72,7 @@ class NoteFooter extends React.Component {
                 title={new Date(note.ctime).toLocaleString()}
               >{ctime}</Link>
             </div>
-            {this.props.visitor.isOwner() &&
+            {window.visitor.isOwner() &&
                 <a
                   className="edit-blog-link filter"
                   href={`/note/${note.id}/edit`
@@ -89,7 +89,7 @@ class NoteFooter extends React.Component {
         </div>
         <CommentList
           visible={this.state.commentsVisible}
-          visitor={this.props.visitor}
+          visitor={window.visitor}
           comments={note.comments || []}
           note_id={note.id}
           onChange={this.props.onChange}

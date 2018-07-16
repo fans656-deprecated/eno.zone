@@ -232,8 +232,47 @@ export default class Stock extends App {
     const tyn_account_usd_3 = tyn_account_usd_2 - tyn_use_3;
     const twi_account_usd_3 = twi_account_usd_2 - twi_use_3;
 
-    console.log(twi_account_usd_3);
-    console.log(twi_account_usd_3 * 6.6720);
+    const lwl_account_stocks_3 = lwl_account_stocks_1;
+    const lwl_account_usd_3 = lwl_account_usd_1;
+
+    const lwl_sell_to_twi_stocks_4 = lwl_account_stocks_3 - 900;
+    const tyn_sell_to_twi_stocks_4 = tyn_account_stocks_3 - 900;
+
+    // 按股价17港币算，以符合我们三只蚂蚱的名号
+    const hkd_per_stock_4 = 17;
+    const hkd_per_usd_4 = hkd_per_usd_3;
+    const usd_per_stock_4 = hkd_per_stock_4 / hkd_per_usd_4;
+
+    const lwl_sell_to_twi_gain_usd = (
+      lwl_sell_to_twi_stocks_4 * hkd_per_stock_4 / hkd_per_usd_4
+    );
+    const tyn_sell_to_twi_gain_usd = (
+      tyn_sell_to_twi_stocks_4 * hkd_per_stock_4 / hkd_per_usd_4
+    );
+    const twi_got_stocks_4 = lwl_sell_to_twi_stocks_4 + tyn_sell_to_twi_stocks_4;
+    const twi_use_usd_4 = twi_got_stocks_4 * hkd_per_stock_4 / hkd_per_usd_4;
+
+    const lwl_account_stocks_4 = lwl_account_stocks_3 - lwl_sell_to_twi_stocks_4;
+    const tyn_account_stocks_4 = tyn_account_stocks_3 - tyn_sell_to_twi_stocks_4;
+    const twi_account_stocks_4 = twi_account_stocks_3 + twi_got_stocks_4;
+
+    const lwl_account_usd_4 = lwl_account_usd_3 + lwl_sell_to_twi_gain_usd;
+    const tyn_account_usd_4 = tyn_account_usd_3 + tyn_sell_to_twi_gain_usd;
+    const twi_account_usd_4 = twi_account_usd_3 - twi_use_usd_4;
+
+    ////////////////////////////////
+    const lwl_account_stocks_5 = lwl_account_stocks_4;
+    const tyn_account_stocks_5 = tyn_account_stocks_4;
+    const twi_account_stocks_5 = twi_account_stocks_4;
+
+    const twi_withdraw_5 = twi_account_usd_4;
+
+    const lwl_account_usd_5 = lwl_account_usd_4;
+    const tyn_account_usd_5 = tyn_account_usd_4 + twi_withdraw_5;
+    const twi_account_usd_5 = twi_account_usd_4 - twi_withdraw_5;
+
+    const cyn_per_usd_5 = 6.6720;  // just around days of 2018-07-09
+    const tyn_pay_5 = twi_withdraw_5 * cyn_per_usd_5;
 
     return (
       <div className="stock">
@@ -357,7 +396,6 @@ export default class Stock extends App {
         </div>
 
         <div style={{fontFamily: 'Consolas'}}>
-          <h1>最终</h1>
           <p>
             lwl
             <STK val={lwl_account_stocks_1}/>
@@ -373,6 +411,83 @@ export default class Stock extends App {
             <STK val={twi_account_stocks_3}/>
             <USD val={twi_account_usd_3}/>
             &nbsp; 折合人民币 <CNY val={twi_account_usd_3 * 6.6720}/>
+          </p>
+        </div>
+
+        <div className="buy-detail">
+          <p>2018-07-12 09:25:22</p>
+          <p>lwl tyn按股价<HKD val={hkd_per_stock_4}/> / <USD val={usd_per_stock_4}/>
+            &nbsp;USD/HKD汇率(07-09){hkd_per_usd_4.toFixed(2)} 卖给twi
+          </p>
+          <hr/>
+          <p>lwl减少<STK val={lwl_sell_to_twi_stocks_4}/> 
+            增加<USD val={lwl_sell_to_twi_gain_usd}/>
+            &nbsp; => 账面
+            <STK val={lwl_account_stocks_4}/>
+            <USD val={lwl_account_usd_4}/>
+          </p>
+          <p>tyn减少<STK val={tyn_sell_to_twi_stocks_4}/> 
+            增加<USD val={tyn_sell_to_twi_gain_usd}/>
+            &nbsp; => 账面
+            <STK val={tyn_account_stocks_4}/>
+            <USD val={tyn_account_usd_4}/>
+          </p>
+          <p>twi增加<STK val={twi_got_stocks_4}/> 
+            减少<USD val={twi_use_usd_4}/>
+            &nbsp; => 账面
+            <STK val={twi_account_stocks_4}/>
+            <USD val={twi_account_usd_4}/>
+          </p>
+          <div style={{
+            textAlign: 'right',
+            color: '#999',
+          }}>
+            <p>显示只精确到小数点后两位，实际计算以最大精度进行</p>
+            <p>汇率 {hkd_per_usd_4}</p>
+            <p>股数 {twi_got_stocks_4}</p>
+          </div>
+        </div>
+
+        <div style={{fontFamily: 'Consolas'}}>
+          <p>
+            lwl
+            <STK val={lwl_account_stocks_4}/>
+            <USD val={lwl_account_usd_4}/>
+          </p>
+          <p>
+            tyn
+            <STK val={tyn_account_stocks_4}/>
+            <USD val={tyn_account_usd_4}/>
+          </p>
+          <p>
+            twi
+            <STK val={twi_account_stocks_4}/>
+            <USD val={twi_account_usd_4}/>
+            &nbsp; 折合人民币 <CNY val={twi_account_usd_4 * 6.6720}/>
+          </p>
+        </div>
+
+        <div className="buy-detail">
+          <p>2018-07-12 09:25:22</p>
+          <p>twi提现 <USD val={twi_withdraw_5}/></p>
+          <p>tyn支付 <CNY val={tyn_pay_5}/> (零头抹去，实付1500)</p>
+        </div>
+
+        <div style={{fontFamily: 'Consolas'}}>
+          <p>
+            lwl
+            <STK val={lwl_account_stocks_5}/>
+            <USD val={lwl_account_usd_5}/>
+          </p>
+          <p>
+            tyn
+            <STK val={tyn_account_stocks_5}/>
+            <USD val={tyn_account_usd_5}/>
+          </p>
+          <p>
+            twi
+            <STK val={twi_account_stocks_5}/>
+            <USD val={twi_account_usd_5}/>
           </p>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie';
+import { fetchJSON } from './util';
 
 export default class User {
   constructor(user) {
@@ -22,8 +23,9 @@ export default class User {
     return this.username === 'fans656';
   }
 
-  logout = () => {
-    Cookies.remove('token');
+  logout = async () => {
+    //Cookies.remove('token');
+    await fetchJSON('GET', '/api/logout');
     window.location.href = '/';
   }
 }

@@ -35,7 +35,8 @@ def options(path=''):
 
 @app.after_request
 def after_request(r):
-    r.headers['Cache-Control'] = 'no-cache'
+    if conf.debug:
+        r.headers['Cache-Control'] = 'no-cache'
     r.headers.add('Access-Control-Allow-Origin', request.host_url)
     r.headers.add('Access-Control-Allow-Credentials', 'true')
     r.headers.add('Access-Control-Allow-Headers', '*')
@@ -45,14 +46,14 @@ def after_request(r):
 
 if __name__ == '__main__':
     if os.system('systemctl is-active --quiet mongod'):
-        #logger.info('try start database(mongodb)')
         os.system('sudo service mongod start')
     if not stome.filesystem.initialized():
         stome.filesystem.initialize()
+
     app.run(
         host='0.0.0.0',
         port=conf.port,
         threaded=True,
-        debug=True,
+        debug=conf.debug,
         ssl_context='adhoc',
     )

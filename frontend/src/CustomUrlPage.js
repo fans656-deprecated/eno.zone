@@ -1,51 +1,52 @@
-import React, { Component } from 'react';
+import React from 'react';
+import qs from 'query-string';
 
-import { ViewBlog } from './Blogs';
-import { fetchData } from './utils'
+import { fetchJSON } from './util'
+import NoteComp from './Note';
+import Note from './note';
+import EditNote from './EditNote';
 
-export default class CustomUrlPage extends Component {
+export default class CustomUrlPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      res: null,
+      note: null,
     };
   }
 
-  componentWillReceiveProps(props) {
-    const path = props.match.url;
-    const setState = res => this.setState({res: res});
-    if (path) {
-      fetchData('GET', '/api/custom-url' + path, setState, setState);
+  async componentDidMount() {
+    const url = this.props.url;
+    const res = await fetchJSON('POST', '/api/query-note', {
+      url: url,
+    });
+    if (res.note) {
+      this.setState({note: res.note});
     }
   }
 
+  //componentWillReceiveProps(props) {
+  //  const path = props.match.url;
+  //  const setState = res => this.setState({res: res});
+  //  if (path) {
+  //    fetchData('GET', '/api/custom-url' + path, setState, setState);
+  //  }
+  //}
+
   render() {
-    if (!this.state.res) {
-      return null;
+    let note = this.state.note;
+    if (!note) return null;
+    note = new Note(note);
+
+    const search = window.location.search;
+    let editing = false;
+    if (search.length) {
+      const params = qs.parse(search.substring(1));
+      editing = 'edit' in params;
+    }
+    if (editing) {
+      return <EditNote note={note}/>
     } else {
-      const res = this.state.res;
-      if (res.errno) {
-        return <div style={{
-          fontSize: '1em',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          minHeight: '70vh',
-        }}>
-          <div style={{textAlign: 'center'}}>
-            <h1>{res.errno}</h1>
-            <p>{res.detail}</p>
-          </div>
-        </div>
-      } else if (res.type === 'blog') {
-        return (
-          <ViewBlog blog={res.blog} user={this.props.user}
-            registerConsoleHandler={this.props.registerConsoleHandler}
-          />
-        )
-      } else {
-        return <pre>{res.detail}</pre>
-      }
+      return <NoteComp note={note} isSingleView={true}/>
     }
   }
 }

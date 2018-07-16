@@ -17,7 +17,6 @@ from dateutil.parser import parse as parse_datetime
 
 import errors
 import conf
-import auther
 
 
 def guarded(viewfunc):
@@ -28,6 +27,8 @@ def guarded(viewfunc):
             if isinstance(res, dict):
                 res = json.dumps(res)
             return res
+        except errors.Error as e:
+            return error_response(str(e), e.status_code or 400)
         except Exception as e:
             return error_response(e)
     return wrapper
@@ -130,8 +131,8 @@ def require_owner_login(viewfunc):
         visitor = get_visitor()
         owner = get_owner()
         if not visitor or visitor['username'] != owner['username']:
-            return util.error_response(
-                'you are not "{}"'.format(conf.owner), 403)
+            return error_response(
+                'you are not "{}"'.format(owner), 403)
         return viewfunc(*args, **kwargs)
     return wrapper
 
@@ -145,10 +146,3 @@ def require_admin_login(viewfunc):
             return error_response('you are not admin', 401)
         return viewfunc(*args, **kwargs)
     return wrapper
-
-
-if __name__ == '__main__':
-    def foo():
-        logger('hi')
-
-    foo()

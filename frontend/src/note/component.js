@@ -20,7 +20,7 @@ export default class NoteComponent extends React.Component {
 
   render() {
     const note = this.state.note.note;
-    if (!note || !note.content) {
+    if (!note) {
       return null;
     }
 

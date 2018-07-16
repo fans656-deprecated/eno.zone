@@ -12,7 +12,8 @@ class NoteList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      pagedNotes: {
+      loading: true,
+      pagedNotes: props.notes || {
         notes: [],
         skip: 0,
         total: 0,
@@ -27,31 +28,49 @@ class NoteList extends React.Component {
 
   async componentDidMount() {
     const q = qs.parse(window.location.search);
-    const pagedNotes = await getPagedNotes({
-      owner: this.props.owner,
-      page: q.page,
-      size: q.size,
-    });
+    let pagedNotes;
+    if (this.props.notes) {
+      pagedNotes = this.state.pagedNotes;
+    } else {
+      pagedNotes = await getPagedNotes({
+        owner: window.owner,
+        page: q.page,
+        size: q.size,
+      });
+    }
     pagedNotes.notes = pagedNotes.notes.map(note => new Note(note));
-    this.setState({pagedNotes: pagedNotes});
+    this.setState({pagedNotes: pagedNotes, loading: false});
   }
 
   render() {
+    if (this.state.loading) {
+      return null;
+    }
     const notes = this.state.pagedNotes.notes.map(note => (
       <NoteComp
         key={note.id()}
         note={note}
         id={note.id()}
-        visitor={this.props.visitor}
+        visitor={window.visitor}
       />
     ));
+    if (notes.length === 0) {
+      return <div style={{
+        color: '#999',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}>
+        <p>It seems nothing is here</p>
+      </div>
+    }
     return (
       <div className="note-list">
         <div className="notes">
           {notes}
         </div>
         <Pagination {...this.state.pagedNotes.pagination} tags={[]}/>
-        <OperationPanel user={this.props.visitor}/>
+        <OperationPanel user={window.visitor}/>
       </div>
     );
   }

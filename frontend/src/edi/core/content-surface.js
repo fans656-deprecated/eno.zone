@@ -7,7 +7,7 @@ export default class ContentSurface extends Surface {
   constructor(text, editor, props) {
     super(editor, Object.assign(props || {}, {
       content: new Content(text || ''),
-      mode: Mode.Normal,
+      mode: window.isMobile ? Mode.Input : Mode.Normal,
     }));
     this.map(':', () => this.editor.prepareCommand(':'));
     this.map('/', () => this.editor.prepareCommand('/'));

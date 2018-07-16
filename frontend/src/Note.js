@@ -19,7 +19,7 @@ export default class NoteComponent extends React.Component {
 
   getNote = async () => {
     const note = new Note();
-    await note.fetch(this.props.owner, this.props.id);
+    await note.fetch(this.props.owner || window.owner, this.props.id);
     this.setState({note: note});
   }
 

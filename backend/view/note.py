@@ -1,29 +1,59 @@
+from __future__ import absolute_import
 from flask import request
 
+import db
 import util
+import conf
 import noter
-import auther
+from user import User
+from errors import NotFound
 
 
 def get_note(note_id):
     note = noter.get_note(note_id)
-    if '.' in note['tags'] and not util.is_visitor_owner():
+    if '.' in note.get('tags', []) and not util.is_visitor_owner():
         return util.error_response('Unauthorized')
     return util.success_response(note)
 
 
-def get_notes():
+def query_note():
+    query = request.json
+    if not query:
+        return util.error_response('bad request')
+    if 'url' in query:
+        note = db.get_note_with_url(query['url'])
+        return util.success_response({
+            'note': note
+        })
+    else:
+        return util.error_response('bad request')
+
+
+def query_notes():
+    query = request.json
+    if query:
+        collection_name = query.get('collection')
+        if collection_name and isinstance(collection_name, (str, unicode)):
+            return get_notes({
+                'collections': collection_name
+            })
+    return get_notes()
+
+
+def get_notes(q=None):
     page = max(int(request.args.get('page', 1)), 1)
     size = max(int(request.args.get('size', 20)), 1)
 
-    owner_username = request.args.get('owner')
-    owner = auther.get_user(owner_username)
+    #owner_username = request.args.get('owner')
+    owner_username = conf.owner
+    owner = User.get_user(owner_username)
 
     if owner:
         visitor = util.get_visitor()
-        q = {
+        q = q or {}
+        q.update({
             'owner': owner['username'],
-        }
+        })
         if not util.is_owner(visitor, owner):
             q.update({
                 'tags': {'$not': {'$eq': '.'}}
@@ -59,6 +89,7 @@ def get_notes():
 @util.require_owner_login
 def put_note(note_id):
     note = request.json
+    print note
     note['id'] = note_id
     if noter.put_note(note):
         return util.success_response()

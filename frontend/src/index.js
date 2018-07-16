@@ -16,6 +16,12 @@ registerServiceWorker();
 
 const visitor = getVisitor();
 const owner = getOwner();
+
+window.isMobile = window.matchMedia('(max-device-width: 800px)').matches;
+
+window.owner = owner;
+window.visitor = visitor;
+
 visitor.owner = owner.owner = owner;
 
 document.title = `Home - ${owner['username']}`;

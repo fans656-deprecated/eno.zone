@@ -11,7 +11,9 @@ import Profile from './Profile';
 import NoteList from './NoteList';
 import EditNote from './EditNote';
 import Note from './Note';
+import CustomUrlPage from './CustomUrlPage';
 import Explorer from './stome/Explorer';
+import { isEditing } from './util';
 import './css/style.css'
 import './stome/css/style.css'
 
@@ -86,13 +88,18 @@ class App extends React.Component {
             />
 
             <Route exact path='/note/:id'
+              render={({match}) => {
+                if (isEditing()) {
+                  return <EditNote id={match.params.id}/>;
+                } else {
+                  return <Note id={match.params.id} isSingleView={true}/>;
+                }
+              }}
+            />
+
+            <Route path='*'
               render={({match}) => (
-                <Note
-                  owner={owner}
-                  visitor={visitor}
-                  id={match.params.id}
-                  isSingleView={true}
-                />
+                <CustomUrlPage url={match.url}/>
               )}
             />
         </Switch>

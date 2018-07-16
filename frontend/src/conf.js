@@ -8,6 +8,13 @@ const conf = {
   default: {
     nav: [
       {name: 'Home', url: '/'},
+      {name: 'Blog', url: '/'},
+      {name: 'Diary', url: '/'},
+      {name: 'Leetcode', url: '/'},
+      {name: 'Books', url: '/'},
+      {name: 'Music', url: '/'},
+      {name: 'Videos', url: '/'},
+      {name: 'More', url: '/'},
     ]
   },
 };

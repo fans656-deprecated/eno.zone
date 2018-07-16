@@ -14,19 +14,24 @@ class EditNote extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      note: null,
+      note: props.note || null,
       editingMeta: false,
     };
   }
 
   async componentDidMount() {
-    let note = {
-      owner: this.props.owner.username,
-      id: this.props.id,
-      content: '\n',
-      type: 'eno',
-      tags: [],
-    };
+    let note;
+    if (this.state.note) {
+      note = this.state.note.note;
+    } else {
+      note = {
+        owner: window.owner.username,
+        id: this.props.id,
+        content: '\n',
+        type: 'eno',
+        tags: [],
+      };
+    }
     if (this.props.id) {
       note = await getNote(note);
     }
@@ -35,23 +40,31 @@ class EditNote extends React.Component {
     }, () => {
       const note = this.state.note;
       const metaContent = note.metaContent() || '';
-      this.edi.open('meta', metaContent);
+      if (!window.isMobile) {
+        console.log('open metaContent');
+        this.edi.open('meta', metaContent);
+      }
     });
   }
 
   render() {
-    if (!this.props.visitor.isOwner()) {
+    if (!window.visitor.isOwner()) {
       return <h1>You are not owner</h1>;
     }
     const note = this.state.note;
     if (!note) {
       return null;
     }
-    return (
-      <div
-        className="edit-blog"
-        onKeyUp={this.onKeyUp}
-      >
+    let editor;
+    if (window.isMobile) {
+      editor = (
+        <textarea
+          defaultValue={note.content()}
+          ref={ref => this.textarea = ref}
+        />
+      );
+    } else {
+      editor = (
         <Edi
           ref={ref => this.edi = ref}
           className="note"
@@ -61,6 +74,14 @@ class EditNote extends React.Component {
           onSaveAndQuit={this.onSaveAndQuit}
           onPreview={this.onPreview}
         />
+      );
+    }
+    return (
+      <div
+        className="edit-blog"
+        onKeyUp={this.onKeyUp}
+      >
+        {editor}
         <div className="buttons horizontal">
           <div className="left">
           </div>
@@ -83,13 +104,18 @@ class EditNote extends React.Component {
   }
 
   onSave = async (fnameToBuffer) => {
-    const content = fnameToBuffer['content'];
-    const metaContent = fnameToBuffer['meta'];
     let note = this.state.note;
-    note.setContent(content);
-    note.setMetaContent(metaContent);
+    if (typeof(fnameToBuffer) === 'string') {
+      const text = fnameToBuffer;
+      note.setContent(text);
+    } else {
+      const content = fnameToBuffer['content'];
+      const metaContent = fnameToBuffer['meta'];
+      note.setContent(content);
+      note.setMetaContent(metaContent);
+    }
     if (note.id() == null) {
-      note.setOwner(this.props.owner.username);
+      note.setOwner(window.owner.username);
     }
     await note.save();
   }
@@ -98,8 +124,8 @@ class EditNote extends React.Component {
     this.navigateBack();
   }
 
-  onSaveAndQuit = async (text) => {
-    await this.onSave(text);
+  onSaveAndQuit = async (fnameToBuffer) => {
+    await this.onSave(fnameToBuffer);
     this.setState({note: this.state.note}, this.navigateBack);
   }
 
@@ -135,7 +161,11 @@ class EditNote extends React.Component {
   }
 
   doPost = async () => {
-    await this.onSaveAndQuit(this.edi.text());
+    if (this.edi) {
+      await this.onSaveAndQuit(this.edi.buffersForSave());
+    } else {
+      await this.onSaveAndQuit(this.textarea.value);
+    }
   }
 
   doDelete = async () => {

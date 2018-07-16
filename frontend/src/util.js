@@ -189,3 +189,13 @@ export function interlace(xs, gen) {
   });
   return ys;
 }
+
+export function isEditing() {
+  const search = window.location.search;
+  let editing = false;
+  if (search.length) {
+    const params = qs.parse(search.substring(1));
+    editing = 'edit' in params;
+  }
+  return editing;
+}
