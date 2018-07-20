@@ -48,6 +48,11 @@ def get_note_with_url(url):
     return notes[0] if notes else None
 
 
+def get_note_with_alias(alias):
+    notes = list(getdb().note.find({'alias': alias}, {'_id': False}))
+    return notes[0] if notes else None
+
+
 if __name__ == '__main__':
     notes = getdb().note.find({})
     for note in notes:

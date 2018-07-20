@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-//import { getNote } from './util';
+import { fetchJSON } from './util';
 import conf from './conf'
 import './css/Nav.css';
 
@@ -14,24 +14,29 @@ export default class Nav extends React.Component {
   }
 
   async componentDidMount() {
-    //let nav = await getNote({owner: this.props.owner, id: '_nav'});
-    //if (nav) {
-    //  this.setState({nav: nav});
-    //}
+    const note = await fetchJSON('POST', '/api/query-note', {
+      alias: 'nav',
+    });
+    if (note) {
+      const nav = [];
+      try {
+        note.note.links.forEach(link => {
+          nav.push({
+            name: link.name,
+            href: link.href,
+          });
+        });
+        this.setState({nav: nav});
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 
   render() {
     let links = [];
     this.state.nav.forEach((link, i) => {
-      let a = null;
-      if (link.url) {
-        a = <a href={link.url}>{link.name}</a>;
-      } else if (link.to) {
-        a = <Link to={link.to}>{link.name}</Link>;
-      }
-      if (a) {
-        links.push(<li key={i}>{a}</li>);
-      }
+      links.push(<li key={i}><a href={link.href}>{link.name}</a></li>);
     });
     return <nav><ul>{links}</ul></nav>;
   }

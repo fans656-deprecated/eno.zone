@@ -35,5 +35,9 @@ const config = {
 };
 
 module.exports = function editWebpackConfig (webpackConfig) {
+  webpackConfig.module.rules.unshift({
+    test: /\.txt$/,
+    use: 'raw-loader',
+  });
   return Object.assign({}, webpackConfig, config);
 }

@@ -22,9 +22,10 @@ def query_note():
         return util.error_response('bad request')
     if 'url' in query:
         note = db.get_note_with_url(query['url'])
-        return util.success_response({
-            'note': note
-        })
+        return util.success_response({'note': note})
+    if 'alias' in query:
+        note = db.get_note_with_alias(query['alias'])
+        return util.success_response({'note': note})
     else:
         return util.error_response('bad request')
 

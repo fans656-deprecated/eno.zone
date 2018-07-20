@@ -11,8 +11,11 @@ import Profile from './Profile';
 import NoteList from './NoteList';
 import EditNote from './EditNote';
 import Note from './Note';
+import NoteWrapper from './note';
 import CustomUrlPage from './CustomUrlPage';
 import Explorer from './stome/Explorer';
+import About from './About';
+import { helpNote } from './help';
 import { isEditing } from './util';
 import './css/style.css'
 import './stome/css/style.css'
@@ -55,6 +58,12 @@ class App extends React.Component {
               render={() => <Admin owner={owner} visitor={visitor}/>}
             />
 
+            <Route exact path='/help'
+              render={() => (
+                <Note note={new NoteWrapper(helpNote)} isSingleView={true}/>
+              )}
+            />
+
             <Route exact path='/'
               render={() => <NoteList owner={owner} visitor={visitor}/>}
             />
@@ -95,6 +104,12 @@ class App extends React.Component {
                   return <Note id={match.params.id} isSingleView={true}/>;
                 }
               }}
+            />
+
+            <Route exact path='/about'
+              render={({match}) => (
+                <About owner={owner} visitor={visitor}/>
+              )}
             />
 
             <Route path='*'

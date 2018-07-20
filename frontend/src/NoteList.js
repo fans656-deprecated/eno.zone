@@ -13,7 +13,7 @@ class NoteList extends React.Component {
     super(props);
     this.state = {
       loading: true,
-      pagedNotes: props.notes || {
+      pagedNotes: {
         notes: [],
         skip: 0,
         total: 0,
@@ -27,10 +27,18 @@ class NoteList extends React.Component {
   }
 
   async componentDidMount() {
+    await this.load(this.props);
+  }
+
+  async componentWillReceiveProps(props) {
+    await this.load(props);
+  }
+
+  async load(props) {
     const q = qs.parse(window.location.search);
     let pagedNotes;
-    if (this.props.notes) {
-      pagedNotes = this.state.pagedNotes;
+    if (props.notes) {
+      pagedNotes = props.notes;
     } else {
       pagedNotes = await getPagedNotes({
         owner: window.owner,

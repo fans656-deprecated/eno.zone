@@ -1,6 +1,7 @@
 import MD5 from 'js-md5'
 import jwt_decode from 'jwt-decode';
 import Cookies from 'js-cookie';
+import qs from 'query-string';
 
 import conf from './conf';
 import User from './User';

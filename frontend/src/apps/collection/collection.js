@@ -21,7 +21,6 @@ export default class Collection extends App {
     const res = await fetchJSON('POST', '/api/query-notes', {
       collection: note.note.name,
     });
-    console.log(res);
     this.setState({
       loading: false,
       notes: res,
