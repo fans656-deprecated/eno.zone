@@ -175,6 +175,9 @@ class AccessControlledNode(object):
             raise PermissionDenied(self.path)
         self._delete()
 
+    def rename(self, name):
+        self.node.rename(name)
+
     def list(self, depth):
         if not self.readable:
             return None

@@ -12,7 +12,7 @@ def getdb():
 
 
 def newdb():
-    return pymongo.MongoClient().stome
+    return pymongo.MongoClient().enozone
 
 
 def use_new():

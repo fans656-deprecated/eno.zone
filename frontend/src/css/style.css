@@ -48,7 +48,7 @@ main {
   min-height: 100vh;
 }
 
-button {
+.eno-button {
   min-width: 120px;
   height: 32px;
   line-height: 32px;
@@ -58,29 +58,29 @@ button {
   box-shadow: 0 0 3px #aaa;
 }
 
-button.primary {
+.eno-button.primary {
   background: #4d98d6;
   color: white;
   box-shadow: 0 0 5px #aaa;
 }
 
-button.secondary {
+.eno-button.secondary {
   background: var(--bg-color);
   border: 1px solid #ddd;
   box-shadow: none;
 }
 
-button.warnning {
+.eno-button.warnning {
   background: coral;
   color: white;
 }
 
-button.dangerous {
+.eno-button.dangerous {
   background: crimson;
   color: white;
 }
 
-button:hover {
+.eno-button:hover {
   cursor: pointer;
 }
 

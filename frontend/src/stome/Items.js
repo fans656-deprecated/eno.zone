@@ -14,6 +14,8 @@ export default class Items extends React.Component {
         return (
           <Item key={node.meta.path} node={node}
             onClick={this.props.onClick}
+            renaming={this.props.renaming}
+            onStopRename={this.props.onStopRename}
           />
         );
       });

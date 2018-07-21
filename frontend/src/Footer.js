@@ -11,7 +11,6 @@ const Footer = (props) => (
       lineHeight: '3',
       position: 'relative',
       textAlign: 'center',
-      fontFamily: 'Consolas',
     }}
   >
     <Link to="/">{props.owner.username}'s site</Link>

@@ -29,6 +29,18 @@ export class Node {
     this.loaded = false;
   }
 
+  rename = async (name) => {
+    const oldPath = this.meta.path;
+    Object.assign({
+      name: name,
+      path: renamedPath(oldPath, name),
+    });
+    await api.put(this.meta.path + '?rename', null, {
+      name: name,
+    });
+    this.updateParent();
+  }
+
   /**
    * Return whether this node has sub-directories
    */
@@ -260,4 +272,10 @@ class Tree {
     if (path === '/') return this.root;
     return await this.root.findByPath(path);
   }
+}
+
+function renamedPath(path, name) {
+  const parts = path.split('/');
+  parts.splice(parts.length - 1, 1, name);
+  return parts.join('/');
 }

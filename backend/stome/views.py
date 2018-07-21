@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import os
 import time
 import json
@@ -82,7 +83,6 @@ def require_owner_login(viewfunc):
         visitor = get_visitor()
         # currently only me
         if not visitor or visitor['username'] != 'fans656':
-            print visitor, 'Unauthorized'
             return ('Unauthorized', 401)
         return viewfunc(*args, **kwargs)
     return wrapper
@@ -148,6 +148,13 @@ def put_path(path='/'):
             "root": "~/.stome-files"
         }
 
+    + Rename file/directory
+
+        PUT /img/girl.jpg?rename
+        {
+            "name": "test.jpg"
+        }
+
     + Update file/directory meta
 
         PUT /img/girl.jpg?meta
@@ -170,6 +177,8 @@ def put_path(path='/'):
     visitor = get_visitor()
     if 'storage' in request.args:
         return handle_upsert_storage(visitor)
+    elif 'rename' in request.args:
+        return handle_rename_node(visitor, path)
     elif 'meta' in request.args:
         return handle_update_node_meta(visitor, path)
     elif 'content' in request.args:
@@ -297,7 +306,6 @@ def handle_get_api(visitor, path):
     node = filesystem.get_node(visitor, path)
     if not node:
         raise NotFound(path)
-    print visitor['username'], repr(path), node.readable
     if not node.readable:
         raise PermissionDenied(path)
 
@@ -338,14 +346,27 @@ def handle_upsert_storage(visitor):
     return storage.meta
 
 
+@enozone_util.require_owner_login
+def handle_rename_node(visitor, path):
+    node = filesystem.get_node(visitor, path)
+    try:
+        new_name = request.json['name']
+    except Exception:
+        raise Error('new name required')
+    if not is_valid_name(new_name):
+        raise Error('invalid name')
+    node.rename(new_name)
+
+
+@enozone_util.require_owner_login
 def handle_update_node_meta(visitor, path):
-    # TODO: access control
     node = filesystem.get_node(visitor, path)
     meta = request.json
     node.update_meta(meta)
 
+
+@enozone_util.require_owner_login
 def handle_update_content_meta(visitor):
-    # TODO: access control
     meta = request.json
     content = store.get_content.get(meta['md5'], meta['storage_id'])
     content.update_meta(meta)
@@ -419,6 +440,14 @@ def is_simple_upload():
 def get_content_size():
     size = request.args.get('size', 0) or request.headers['content-length']
     return int(size)
+
+
+def is_valid_name(name):
+    if not (0 < len(name) < 1024):
+        return False
+    if '/' in name:
+        return False
+    return True
 
 
 if __name__ == '__main__':

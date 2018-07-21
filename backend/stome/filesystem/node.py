@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from .. import db
 from .. import store
 
@@ -140,6 +141,14 @@ class Node(object):
         self._meta.update(meta)
         self.serialize()
 
+    def rename(self, name):
+        old_path = self.path
+        self._meta.update({
+            'name': name,
+            'path': renamed_path(old_path, name),
+        })
+        db.getdb().node.update({'path': old_path}, self._meta)
+
     def serialize(self):
         db.getdb().node.update({'path': self.path}, self._meta, upsert=True)
 
@@ -206,3 +215,10 @@ class LinkNode(Node):
     @property
     def has_content(self):
         return self.target_node.has_content
+
+
+def renamed_path(path, name):
+    path = '/'.join(path.split('/')[:-1] + [name])
+    if not path.startswith('/'):
+        path = '/' + path
+    return path

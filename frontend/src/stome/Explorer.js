@@ -56,6 +56,7 @@ class Explorer extends React.Component {
             onNodeToggled={this.onNodeToggledInNav}
           />
           <Content
+            ref={ref => this.content = ref}
             currentDir={this.state.tree.currentDir}
             currentItem={this.state.tree.currentItem}
             onClick={this.onItemClickedInContent}
@@ -98,6 +99,9 @@ class Explorer extends React.Component {
         this.openFile(node);
       }
     } else {
+      if (this.content) {
+        this.content.stopRename();
+      }
       this.setCurrentItem(node);
     }
     this.update();
