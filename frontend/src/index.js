@@ -10,6 +10,11 @@ import { init as stomeInit } from './stome/init';
 
 import './css/style.css'
 
+window.onerror = function unhandledError(errorMessage, url, lineNumber) {
+  alert(errorMessage, url, lineNumber);
+  return false;
+}
+
 stomeInit();
 
 registerServiceWorker();

@@ -59,6 +59,7 @@ class EditNote extends React.Component {
     if (window.isMobile) {
       editor = (
         <textarea
+          className="textarea"
           defaultValue={note.content()}
           ref={ref => this.textarea = ref}
         />

@@ -12,12 +12,18 @@ export function init() {
     let id = null;
     switch (eventname) {
       case 'keyup':
+      case 'keydown':
         id = newHandlerId(eventname);
         break;
       default:
         break;
     }
-    if (id) window.handlers[eventname][id] = handler;
+    if (id) {
+      if (!(eventname in window.handlers)) {
+        window.handlers[eventname] = {};
+      }
+      window.handlers[eventname][id] = handler;
+    }
     return id;
   }
 
@@ -35,6 +41,13 @@ export function init() {
   $('html').on('keyup', (ev) => {
     for (let key in window.handlers.keyup) {
       const handler = window.handlers.keyup[key];
+      handler(ev);
+    }
+  });
+
+  $('html').on('keydown', (ev) => {
+    for (let key in window.handlers.keydown) {
+      const handler = window.handlers.keydown[key];
       handler(ev);
     }
   });

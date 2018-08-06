@@ -6,6 +6,10 @@ import qs from 'query-string';
 import conf from './conf';
 import User from './User';
 
+export function info(message, ...args) {
+  console.log('INFO: ' + message, ...args);
+}
+
 export function warn(message, ...args) {
   console.log('WARNING: ' + message, ...args);
 }
@@ -25,15 +29,28 @@ if (DEBUG_ON) {
     warn: warn,
     error: error,
     debug: _debug,
+    info: info,
   };
 } else {
   debug = {
-    warn: () => null,
-    error: () => null,
+    warn: () => warn,
+    error: () => error,
     debug: () => null,
+    info: info,
   };
 }
 export const logger = debug;
+
+export async function fetchData(method, url, data) {
+  let options;
+  [url, options] = prepareFetch(method, url, data);
+  const resp = await fetch(url, options);
+  if (resp.status === 200) {
+    return await resp.text();
+  } else {
+    return null;
+  }
+}
 
 export async function fetchJSON(method, url, data) {
   let options;

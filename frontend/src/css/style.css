@@ -5,7 +5,7 @@
 }
 
 html {
-  overflow-y: scroll;
+  /*overflow-y: scroll;*/
 }
 
 .reverse-color {
@@ -160,7 +160,7 @@ header, footer {
     box-sizing: border-box;
   }
 
-  .edit-blog textarea {
+  .edit-blog .textarea {
     width: 100%;
     height: 70vh;
     min-height: 20rem;
@@ -319,7 +319,7 @@ header, footer {
     background: white;
   }
 
-  .edit-blog textarea {
+  .edit-blog .textarea {
     min-height: 34rem;
     padding: .5rem;
   }
@@ -345,6 +345,14 @@ header, footer {
     padding-left: 2rem;
     margin: 1rem 2rem;
   }
+
+  .note-content h1 {
+    border-bottom: 1px solid #ccc;
+  }
+
+  .note-content h2 {
+    border-bottom: 1px solid #eee;
+  }
 }
 
 /* ---common------------------------------------------ */
@@ -357,6 +365,10 @@ header, footer {
   white-space: pre-wrap;
 }
 
+.blog-content {
+  font-family: 'Consolas';
+}
+
 .blog pre, .blog code {
   font-family: "Consolas", "Courier New", "monospace";
   line-height: 1.1;
@@ -367,9 +379,11 @@ header, footer {
 }
 
 .blog pre {
+  white-space: pre-wrap;
 }
 
 .blog pre code {
+  white-space: pre-wrap;
 }
 
 .blog code {
@@ -503,12 +517,16 @@ header, footer {
 
 /* -edit-blog----------------------------------------- */
 
-.edit-blog textarea {
+.edit-blog .textarea {
   width: 100%;
 }
 
 textarea {
-  font-family: 'Microsoft YaHei';
+  font-family: 'Consolas, Microsoft YaHei';
+}
+
+.textarea {
+  font-family: 'Arial, Microsoft YaHei';
   line-height: 1.5;
   padding: .5rem;
   border: 1px solid #ddd;

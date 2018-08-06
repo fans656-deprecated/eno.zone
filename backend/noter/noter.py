@@ -103,7 +103,10 @@ def delete_comment(note_id, comment_id):
 
 
 def dbfind(query):
-    return db.getdb().note.find(query, {'_id': False}).sort([('ctime', -1)])
+    return db.getdb().note.find(query, {'_id': False}).sort([
+        ('ctime', -1),
+        ('id', -1),
+    ])
 
 
 def new_note_id():

@@ -36,8 +36,14 @@ export default class NoteComponent extends React.Component {
       default:
         if (note.type in apps) {
           comp = this.renderApp(note);
-          if (note.display === 'full' && isSingleView) {
-            return comp;
+          if (isSingleView) {
+            switch (note.display) {
+              case 'client':
+              case 'full':
+                return comp;
+              default:
+                break;
+            }
           }
         } else {
           comp = this.renderUnknown(note);

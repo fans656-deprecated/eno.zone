@@ -1354,3 +1354,46 @@ fans656.eno.zone (without log in)
     tag: diary
 比如book
     type: book
+
+2018-07-31 09:42:48
+read
+reading
+wanna-read
+
+category
+    sci-fi
+    history
+    novel
+author
+    凡尔纳
+    郑渊洁
+
+/book/wanna
+/book/reading
+/book/read
+
+/book/author/凡尔纳
+
+2018-08-06 08:45:54
+想尽快先上线了吧，然后想加什么功能再一个一个加
+然后这里列一下上线需要满足的测试
+
+. post note
+. post note with image
+. post comment
+. other user comment
+. register
+. user can't view hidden notes
+
+) user can't view hidden files
+) user can't upload files
+
+) guest can view image
+
+) avatar
+) backup
+) header
+
+) pagination regression
+) sina images
+) leetcode

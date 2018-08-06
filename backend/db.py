@@ -53,11 +53,46 @@ def get_note_with_alias(alias):
     return notes[0] if notes else None
 
 
+def query_notes_by_type(type):
+    notes = list(getdb().note.find({'type': type}, {'_id': False}))
+    return notes
+
+
 if __name__ == '__main__':
-    notes = getdb().note.find({})
-    for note in notes:
-        try:
-            assert note['owner'] == 'fans656'
-        except Exception:
-            print note
-            break
+    from yaml import load
+    from noter import noter
+    notes = list(getdb().note.find({}))
+    #getdb().note.remove({'id': {'$gt': 1277}})
+    note = notes[-1]
+    print note
+    exit()
+
+    with open(u'../../t.txt') as f:
+        books = load(f)
+    print '\n' * 10
+    for book in books:
+        metaContent = ''
+        metaContent += u'type: book\n'
+        metaContent += u'name: {}\n'.format(book['name'])
+        metaContent += u'status: read\n'
+
+        note = {
+            'type': 'book',
+            'name': book['name'],
+            'owner': 'fans656',
+        }
+
+        if book.get('date'):
+            metaContent += 'enddate: {}\n'.format(book['date'])
+            note['enddate'] = str(book['date'])
+        if book.get('begdate'):
+            metaContent += 'begdate: {}\n'.format(book['begdate'])
+            note['begdate'] = str(book['begdate'])
+        if book.get('author'):
+            metaContent += u'author: {}\n'.format(book['author'])
+            note['author'] = book['author']
+        note['content'] = book.get('comment', '')
+        note['metaContent'] = metaContent
+        print note
+        noter.put_note(note)
+    #print list(notes)[-1]

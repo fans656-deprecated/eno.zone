@@ -213,10 +213,14 @@ export default class Surface extends React.Component {
     }
     caret.setPosition(rect.left, rect.top);
     caret.setWidth(caretWidth);
-    $(this.props.input).css({
-      left: rect.x,
-      top: rect.y,
-    });
+    // 2018-07-22 22:58:07
+    // to handle regression that input-element won't move along with caret
+    if (rect.y) {  
+      $(this.props.input).css({
+        left: rect.x,
+        top: rect.y,
+      });
+    }
     const row = this.surface.caret.row;
     if (row > this.lastRow) {
       this.onScrollDown(row - this.lastRow);

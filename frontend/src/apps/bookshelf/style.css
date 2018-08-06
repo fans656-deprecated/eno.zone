@@ -1,0 +1,26 @@
+.book-shelf .book-content .paragraph.full {
+  display: inline-block;
+  text-indent: 2em;
+}
+
+.book-shelf .author {
+  display: inline-block;
+  width: 8em;
+  color: #ccc;
+}
+
+.book-shelf .name {
+  display: inline-block;
+  width: 20em;
+}
+
+.book-shelf .date {
+  font-size: .8em;
+  color: #ccc;
+  margin-left: 2em;
+  display: inline-block;
+  width: 10em;
+}
+
+.book-shelf .beg.date {
+}

@@ -91,7 +91,7 @@
 }
 
 .edi .input-element {
-  width: 1em;
+  width: 999em;
   position: absolute;
   z-index: -999;
 }

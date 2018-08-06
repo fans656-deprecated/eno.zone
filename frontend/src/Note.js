@@ -25,7 +25,6 @@ export default class NoteComponent extends React.Component {
 
   render() {
     const note = this.state.note;
-    console.log('Note', note);
     if (note) {
       return this.state.note.render(this.props);
     } else {

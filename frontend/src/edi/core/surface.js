@@ -770,9 +770,9 @@ export default class Surface {
       console.log(file);
       const nowStr = dateFormat(new Date(), 'yyyymmdd_HHMMss');
       const fname = nowStr + '.png';
-      const fpath = `/note/${fname}`;
+      const fpath = `/.note/${fname}`;
       stomeAPI.upload(fpath, file, {overwrite: true});
-      this.feedText(`[/res/${fpath}]`);
+      this.feedText(`[/res${fpath}]`);
     }
   }
 

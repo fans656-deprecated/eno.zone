@@ -5,6 +5,8 @@ Sized image
   GET /img/girl.jpg?width=64
   GET /img/girl.jpg?height=64-128
 
+cut (ctrl-x) & paste (ctrl-v)
+
 Video player
 
 Encryption method: bit-invert / aes?

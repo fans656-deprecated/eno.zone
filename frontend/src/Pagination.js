@@ -11,9 +11,10 @@ import { Icon } from './common'
 
 class Pagination extends React.Component {
   constructor(props) {
+    console.log('Pagination', props);
     super(props);
     this.state = {
-      page: null,
+      page: props.page,
     };
   }
 

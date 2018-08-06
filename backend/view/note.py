@@ -26,6 +26,9 @@ def query_note():
     if 'alias' in query:
         note = db.get_note_with_alias(query['alias'])
         return util.success_response({'note': note})
+    if 'type' in query:
+        notes = db.query_notes_by_type(query['type'])
+        return util.success_response({'notes': notes})
     else:
         return util.error_response('bad request')
 
