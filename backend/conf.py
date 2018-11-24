@@ -11,7 +11,7 @@ auth_pubkey = open(auth_pubkey_fpath).read().strip()
 auth_prikey_fpath = os.path.join(ssh_dir_path, 'id_rsa')
 auth_prikey = open(auth_prikey_fpath).read().strip()
 
-port = 6561
+port = 9000
 
 default_avatar_url = '/res/eno.zone/avatar/default.jpg'
 

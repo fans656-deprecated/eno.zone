@@ -1385,15 +1385,123 @@ author
 . register
 . user can't view hidden notes
 
-) user can't view hidden files
-) user can't upload files
+) sina dr migration
+) sina migration
+) sina images
 
-) guest can view image
+) stome
+    ) user can't see hidden directories & files
+    ) user can't upload files
+    ) guest can view image
 
 ) avatar
 ) backup
 ) header
 
 ) pagination regression
-) sina images
 ) leetcode
+
+2018-08-06 09:28:56
+发现早前sina blog上迁过来的文章回车都丢掉了，，回本溯源找到了github上当时diandian migration的代码
+原来是当时sina => diandian的时候就丢了，如果想弄回来，大约得重新爬一遍sina的页面
+
+sina原来也有dr，也爬一下吧
+
+2018-08-07 23:16:42
+想整个重写了... 也许过程中用些以前的代码
+然后想先理一理需求
+
+
+=================================== user view
+post blog
+post diary
+post music
+post video
+post book
+    reader app (mobile / server)
+    sync book
+post other
+    resume (html page)
+    about (js page)
+other user post comments
+gallery
+    girls
+    animals
+    sync screenshots
+notes (mobile)
+todo stack
+graph
+random english sentences (mobile)
+jira
+random av
+shadowsocks.json
+paste bin (standalone server)
+balance
+books (reading / wanna / read)
+movie (wanna / seen)
+other
+    stock
+password protected node
+encryption
+
+=================================== technical view
+backup (notes / files)
+multiple platform (mobile / server / localhost)
+files store
+    image thumbnail server
+    video/audio server
+notes store
+auth server (user / group)
+
+=================================== technical view
+auth server
+node store (merge file and note to one concept: node)
+
+2018-08-08 00:00:09
+那么先来一个auth server
+
+    POST /register
+    {
+        "username": "test",
+        "password": "test"
+    }
+    return token
+    
+    POST /login
+    {
+        "username": "test",
+        "password": "test"
+    }
+    return token
+
+2018-08-12 11:09:51
+现在别的repo里开发着auther, noter等
+
+实验了一下，nginx可以支持多个domain由同一个app serve，返回各自的certificate
+
+还要试验一下cookie，同一个cookie能不能用在不同domain上，，呃，好像有点麻烦，暂时不弄了，就多登陆几次好了
+
+2018-08-12 18:06:09
+group的用处？
+
+{
+    "username": "fans656",
+}
+
+2018-08-15 22:39:41
+又换回全部在一个repo里的方式了，然后准备只面向fans656.me
+
+
+filer(原来的stome)的几个场景：
+
+Paste file URL to a browser that never visit the site before
+    1. Browser request backend /file/img/girl.jpg
+    2. Backend check User-Agent header and know it's a browser
+    3. Backend send back bundle.js
+    4. bundle.js try to register sw.js
+    4.1. Register sw.js failed
+        1. bundle.js see it's rendering a file URL
+        2. bundle.js redirect page /file/img/girl.jpg?force-download
+        3. Backend send back the file content
+    4.2. Register sw.js succeed
+        1. sw.js intercept
